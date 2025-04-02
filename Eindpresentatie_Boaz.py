@@ -9,6 +9,34 @@ from datetime import datetime
 import numpy as np
 import matplotlib.dates as mdates
 
+# Custom CSS for dashboard styling in weather broadcast colors
+st.markdown(
+    """
+    <style>
+    /* Slider styling */
+    .stSlider > div {
+        color: #93b2f4 !important;
+        background-color: #d0dafb !important;
+    }
+    /* Button styling */
+    div.stButton > button {
+        background-color: #fdcb50;
+        color: #000;
+    }
+    /* Selectbox styling */
+    .stSelectbox {
+        color: #93b2f4 !important;
+        background-color: #d0dafb !important;
+    }
+    /* Header and text styling */
+    .css-1d391kg, .css-18e3th9 {
+        color: #93b2f4 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # API Configuration
 api_key = 'd5184c3b4e'
 cities = [
@@ -131,10 +159,10 @@ with tab2:
                             'white-space:nowrap;'
                             'line-height:1;'
                             'background-color: rgba(255, 255, 255, 0.7);'
-                            'border: 1px solid red;'
+                            'border: 1px solid #fdcb50;'
                             'border-radius: 4px;'
                             'padding: 2px 6px;'
-                            'color: red;'
+                            'color: #fdcb50;'
                             'font-weight: bold;'
                             'font-size:18px;'
                             'text-align:center;'
@@ -156,10 +184,10 @@ with tab2:
                             'white-space:nowrap;'
                             'line-height:1;'
                             'background-color: rgba(255, 255, 255, 0.7);'
-                            'border: 1px solid blue;'
+                            'border: 1px solid #93b2f4;'
                             'border-radius: 4px;'
                             'padding: 2px 6px;'
-                            'color: blue;'
+                            'color: #93b2f4;'
                             'font-weight: bold;'
                             'font-size:18px;'
                             'text-align:center;'
