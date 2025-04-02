@@ -117,7 +117,7 @@ with tab2:
                     location=[row["lat"], row["lon"]],
                     popup=popup_text,
                     tooltip=row["plaats"],
-                    icon=CustomIcon(icon_path, icon_size=(30, 30))
+                    icon=CustomIcon(icon_path, icon_size=(45, 45))
                 ).add_to(nl_map)
 
             elif visualisatie_optie == "Temperatuur":
