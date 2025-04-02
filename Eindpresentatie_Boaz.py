@@ -25,13 +25,15 @@ def set_bg_image(image_file):
         background-size: cover;
         background-attachment: fixed;
     }}
+    /* Make any iframe transparent to avoid black bars or boxes */
+    iframe {{
+        background: transparent !important;
+    }}
     </style>
     """
     st.markdown(page_bg_css, unsafe_allow_html=True)
 
 # Call the function to set your custom background image.
-# Make sure the file 'pexels-pixabay-531756.jpg' is in the same folder 
-# or adjust the file path below if needed.
 set_bg_image("pexels-pixabay-531756.jpg")
 
 # ------------------------------------------
@@ -199,17 +201,22 @@ with tab2:
 
         return nl_map
 
+    # State management
     if "selected_cities" not in st.session_state:
         st.session_state["selected_cities"] = [cities[0]]
-
     selected_cities = st.session_state["selected_cities"]
-    df_selected_cities = df_uur_verw[df_uur_verw['plaats'].isin(selected_cities)]
-    visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
 
+    # Filter only selected cities
+    df_selected_cities = df_uur_verw[df_uur_verw['plaats'].isin(selected_cities)]
+
+    # Visualization option & time selection
+    visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
     unieke_tijden = df_selected_cities["tijd"].dropna().unique()
+
     huidig_uur = datetime.now().replace(minute=0, second=0, microsecond=0)
     if huidig_uur not in unieke_tijden and len(unieke_tijden) > 0:
         huidig_uur = unieke_tijden[0]
+
     selected_hour = st.select_slider(
         "Selecteer uur",
         options=sorted(unieke_tijden),
@@ -217,5 +224,7 @@ with tab2:
         format_func=lambda t: t.strftime('%H:%M') if not pd.isnull(t) else "No time"
     )
 
+    # Create and display the map
     nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour, selected_cities)
+    # Let Streamlit automatically size the Folium map by leaving width/height off
     st_folium(nl_map)
