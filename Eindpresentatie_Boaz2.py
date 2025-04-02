@@ -87,10 +87,8 @@ else:
     @st.cache_data
     def process_hourly_data(df):
         df['datetime'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
-        # Extract HH:MM for a time slider in the map tab
-        df['tijd'] = df['datetime'].dt.strftime('%H:%M')
-        # Also keep a direct time-based datetime for plotting
-        df['tijd_dt'] = pd.to_datetime(df['tijd'], format='%H:%M', errors='coerce')
+        # Also keep the time as HH:MM (24h) so we can chart without a date
+        df['tijd'] = df['datetime'].dt.strftime('%H:%M')  # For the slider/markers
         return df
 
     df_uur_verw = process_hourly_data(df_uur_verw)
@@ -113,43 +111,43 @@ else:
             (df_uur_verw['datetime'].dt.date == today_date)
         ].copy()
 
-        # Als je hourly data wilt: convert temp/neersl to numeric if needed
-        for col in ['temp', 'neersl']:
-            if col in df_uur_ams.columns:
-                df_uur_ams[col] = pd.to_numeric(df_uur_ams[col], errors='coerce')
-
         if df_uur_ams.empty:
             st.warning("Geen uurlijke voorspellingen voor Amsterdam gevonden voor vandaag.")
         else:
-            # 2) Bereken min/max/gemiddelde temp
+            # Convert to numeric if needed
+            for col in ['temp', 'neersl']:
+                if col in df_uur_ams.columns:
+                    df_uur_ams[col] = pd.to_numeric(df_uur_ams[col], errors='coerce')
+
+            # 2) Bepaal min/max/gemiddelde temp
             max_temp = df_uur_ams['temp'].max()
             min_temp = df_uur_ams['temp'].min()
             avg_temp = df_uur_ams['temp'].mean()
 
-            # 3) Toon deze in metrics
             col1, col2, col3 = st.columns(3)
             col1.metric("Max Temp (°C)", round(max_temp, 1) if pd.notnull(max_temp) else "N/A")
             col2.metric("Min Temp (°C)", round(min_temp, 1) if pd.notnull(min_temp) else "N/A")
             col3.metric("Gem. Temp (°C)", round(avg_temp, 1) if pd.notnull(avg_temp) else "N/A")
 
-            # 4) Korte samenvatting (als zoiets in df_uur_verw zit)
-            #    Als er geen 'samenv' of 'verw' is, kun je bv. de eerste 'image' tonen.
+            # 3) Korte samenvatting (val terug op 'image' of iets anders als je geen samenv hebt)
             if 'samenv' in df_uur_ams.columns:
                 summary = df_uur_ams.iloc[0]['samenv']
             else:
-                # Fallback: neem de eerste 'image' description
-                summary = df_uur_ams.iloc[0].get('image', 'Geen samenvatting beschikbaar')
+                summary = df_uur_ams.iloc[0].get('image', 'Geen samenvatting')
 
             st.subheader("Samenvatting")
             st.write(summary)
 
-            # 5) Grafiek neerslag (uurbasis)
+            # 4) Grafiek neerslag -> X-as zonder datum, alleen HH:MM
             if 'neersl' in df_uur_ams.columns:
-                df_uur_ams.sort_values('tijd_dt', inplace=True)
+                # Sorteren op tijd-string (ensures ascending hours)
+                df_uur_ams['tijd_24h'] = df_uur_ams['datetime'].dt.strftime('%H:%M')
+                df_uur_ams.sort_values('tijd_24h', inplace=True)
+
                 st.subheader("Verwachte neerslag (mm)")
                 st.line_chart(
                     data=df_uur_ams,
-                    x='tijd_dt',
+                    x='tijd_24h',  # Only 24h time here, no date
                     y='neersl'
                 )
             else:
@@ -164,8 +162,8 @@ else:
         weather_icons = {
             "zonnig": "zonnig.png",
             "bewolkt": "bewolkt.png",
-            "halfbewolkt": "halfbewolkt.png",
-            "lichtbewolkt": "halfbewolkt.png",
+            "half bewolkt": "halfbewolkt.png",
+            "licht bewolkt": "halfbewolkt.png",
             "regen": "regen.png",
             "buien": "buien.png",
             "mist": "mist.png",
@@ -175,7 +173,7 @@ else:
             "helderenacht": "helderenacht.png",
             "nachtmist": "nachtmist.png",
             "wolkennacht": "wolkennacht.png",
-            "zwaarbewolkt": "zwaarbewolkt.png"
+            "zwaar bewolkt": "zwaarbewolkt.png"
         }
 
         city_coords = {
@@ -195,7 +193,6 @@ else:
             "Zwolle": [52.5167, 6.0833],
         }
 
-        # Voor lat/lon
         df_uur_verw["lat"] = df_uur_verw["plaats"].map(lambda c: city_coords.get(c, [None, None])[0])
         df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda c: city_coords.get(c, [None, None])[1])
 
@@ -206,6 +203,7 @@ else:
                 tiles="CartoDB positron"
             )
 
+            # Filter on the time string, e.g. "13:00"
             df_filtered = df[df["tijd"] == geselecteerde_uur_str]
 
             for _, row in df_filtered.iterrows():
@@ -281,21 +279,21 @@ else:
 
         visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
 
-        unieke_tijden = df_selected_cities["tijd_dt"].dropna().unique()
-        huidig_uur = datetime.now().replace(minute=0, second=0, microsecond=0)
-        if huidig_uur not in unieke_tijden and len(unieke_tijden) > 0:
-            huidig_uur = unieke_tijden[0]
-
+        unieke_tijden = df_selected_cities["tijd"].dropna().unique()
+        # Sort them so the slider is in ascending time order
         sorted_times = sorted(unieke_tijden)
-        selected_hour = st.select_slider(
+
+        # Attempt to match the current hour if it exists, otherwise default to first time
+        current_hour_str = datetime.now().strftime('%H:%M')
+        if current_hour_str not in sorted_times and len(sorted_times) > 0:
+            current_hour_str = sorted_times[0]
+
+        selected_hour_str = st.select_slider(
             "Selecteer uur",
             options=sorted_times,
-            value=huidig_uur,
-            format_func=lambda t: t.strftime('%H:%M') if not pd.isnull(t) else "No time"
+            value=current_hour_str
         )
 
-        # Convert selected_hour back to "HH:MM"
-        geselecteerde_uur_str = selected_hour.strftime('%H:%M')
-
-        nl_map = create_full_map(df_uur_verw, visualization_option, geselecteerde_uur_str, selected_cities)
+        # Build the map
+        nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour_str, selected_cities)
         st_folium(nl_map, width=None, height=600)
