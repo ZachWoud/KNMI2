@@ -13,34 +13,6 @@ import matplotlib.dates as mdates
 # OPTIONAL: Set page layout
 st.set_page_config(layout="wide")
 
-# ------------- CUSTOM CSS TO OVERRIDE RED STYLING -------------
-st.markdown(
-    """
-    <style>
-    /* Make tab labels bold and black */
-    div[data-testid="stTabs"] button div[data-testid="stTabLabel"] {
-        color: black !important;
-        font-weight: bold !important;
-    }
-
-    /* Make the slider label bold and black */
-    .stSlider > label {
-        color: black !important;
-        font-weight: bold !important;
-    }
-
-    /* If you also want the selectbox label to be bold black, uncomment:
-    .stSelectbox > label {
-        color: black !important;
-        font-weight: bold !important;
-    }
-    */
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-# ---------------------------------------------------------------
-
 # Function to set a full-page background image
 def set_bg_image(image_file):
     with open(image_file, "rb") as f:
