@@ -82,13 +82,14 @@ else:
     df_api_data = pd.DataFrame(api_data)
 
     # ------------------------------------------
-    # Data Prep for hourly data (if needed)
+    # Process hourly data (df_uur_verw)
     # ------------------------------------------
     @st.cache_data
     def process_hourly_data(df):
-        # Convert timestamp to datetime, and split into date & time
         df['datetime'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
+        # Extract HH:MM for a time slider in the map tab
         df['tijd'] = df['datetime'].dt.strftime('%H:%M')
+        # Also keep a direct time-based datetime for plotting
         df['tijd_dt'] = pd.to_datetime(df['tijd'], format='%H:%M', errors='coerce')
         return df
 
@@ -103,83 +104,56 @@ else:
     # TAB 1: AMSTERDAM WEER
     # =========================
     with tab1:
-        st.header("Weer in Amsterdam")
+        st.header("Weer in Amsterdam (vandaag)")
 
-        # Gebruik "dag" in plaats van "datum" -> meestal "Vandaag", "Morgen", etc.
-        df_wk_ams = df_wk_verw[
-            (df_wk_verw['plaats'] == 'Amsterdam') & (df_wk_verw['dag'] == 'Vandaag')
-        ]
+        # 1) Filter df_uur_verw voor Amsterdam en "vandaag"
+        today_date = datetime.now().date()
+        df_uur_ams = df_uur_verw[
+            (df_uur_verw['plaats'] == 'Amsterdam') &
+            (df_uur_verw['datetime'].dt.date == today_date)
+        ].copy()
 
-        # Fallback als "Vandaag" er niet is -> pak gewoon de 1e Amsterdamse rij
-        if df_wk_ams.empty:
-            df_wk_ams = df_wk_verw[df_wk_verw['plaats'] == 'Amsterdam'].head(1)
-
-        # Ophalen kolommen (pas aan naargelang je data)
-        if not df_wk_ams.empty:
-            row = df_wk_ams.iloc[0]
-            # Let op de kolomnamen in wk_verw. Bij WeerLive kunnen deze verschillen,
-            # bv. "tmax" is soms "d0tmax", "samenv" kan ook "verw" heten, etc.
-            # Pas aan als jouw data anders is.
-            tmax = row.get('tmax', 'N/A')
-            tmin = row.get('tmin', 'N/A')
-            samenv = row.get('samenv', 'Geen samenvatting')
-
-            # Gem. temp
-            try:
-                tavg = (float(tmax) + float(tmin)) / 2
-            except:
-                tavg = 'N/A'
-        else:
-            tmax, tmin, tavg, samenv = 'N/A', 'N/A', 'N/A', 'Geen data'
-
-        # -----------------------------
-        # 1. Kerngegevens als Metrics
-        # -----------------------------
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Max Temp (°C)", tmax)
-        col2.metric("Min Temp (°C)", tmin)
-        col3.metric("Gem. Temp (°C)", tavg)
-
-        # -----------------------------
-        # 2. Korte samenvatting
-        # -----------------------------
-        st.subheader("Samenvatting")
-        st.write(samenv)
-
-        # -----------------------------
-        # 3. Grafiek neerslag op uurbasis
-        # -----------------------------
-        # Filter df_uur_verw naar Amsterdam & 'Vandaag' 
-        # Let op: In uur_verw is er vaak geen "dag" maar wel 'datum' of alleen 'timestamp'.
-        # Je kunt bijvoorbeeld filteren op "datetime" en kijken of de dag = vandaag.
-        # Als je dit niet hebt, pas de logica aan.
-
-        # Hier doen we heel simpel: pak "plaats == Amsterdam" en dezelfde "dag" == "Vandaag"
-        # MAAR alleen als 'dag' ook in uur_verw bestaat. In realiteit is 'uur_verw' vaak anders gestructureerd.
-        if 'dag' in df_uur_verw.columns:
-            df_uur_ams = df_uur_verw[
-                (df_uur_verw['plaats'] == 'Amsterdam') & (df_uur_verw['dag'] == 'Vandaag')
-            ].copy()
-        else:
-            # Of je filtert bijv. op "datetime.date() == datetime.now().date()" 
-            # Pas het naar jouw data aan. Dit is een fallback voorbeeld:
-            today_date = datetime.now().date()
-            df_uur_ams = df_uur_verw[
-                (df_uur_verw['plaats'] == 'Amsterdam') &
-                (df_uur_verw['datetime'].dt.date == today_date)
-            ].copy()
-
-        df_uur_ams.sort_values('tijd_dt', inplace=True)
+        # Als je hourly data wilt: convert temp/neersl to numeric if needed
+        for col in ['temp', 'neersl']:
+            if col in df_uur_ams.columns:
+                df_uur_ams[col] = pd.to_numeric(df_uur_ams[col], errors='coerce')
 
         if df_uur_ams.empty:
-            st.warning("Geen (uur)neerslag-data gevonden voor Amsterdam.")
+            st.warning("Geen uurlijke voorspellingen voor Amsterdam gevonden voor vandaag.")
         else:
-            st.subheader("Verwachte neerslag gedurende de dag")
-            st.line_chart(
-                data=df_uur_ams,
-                x='tijd_dt',   # de x-as
-                y='neersl',    # pas aan als jouw kolom anders heet (bv. 'mm')
-            )
+            # 2) Bereken min/max/gemiddelde temp
+            max_temp = df_uur_ams['temp'].max()
+            min_temp = df_uur_ams['temp'].min()
+            avg_temp = df_uur_ams['temp'].mean()
+
+            # 3) Toon deze in metrics
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Max Temp (°C)", round(max_temp, 1) if pd.notnull(max_temp) else "N/A")
+            col2.metric("Min Temp (°C)", round(min_temp, 1) if pd.notnull(min_temp) else "N/A")
+            col3.metric("Gem. Temp (°C)", round(avg_temp, 1) if pd.notnull(avg_temp) else "N/A")
+
+            # 4) Korte samenvatting (als zoiets in df_uur_verw zit)
+            #    Als er geen 'samenv' of 'verw' is, kun je bv. de eerste 'image' tonen.
+            if 'samenv' in df_uur_ams.columns:
+                summary = df_uur_ams.iloc[0]['samenv']
+            else:
+                # Fallback: neem de eerste 'image' description
+                summary = df_uur_ams.iloc[0].get('image', 'Geen samenvatting beschikbaar')
+
+            st.subheader("Samenvatting")
+            st.write(summary)
+
+            # 5) Grafiek neerslag (uurbasis)
+            if 'neersl' in df_uur_ams.columns:
+                df_uur_ams.sort_values('tijd_dt', inplace=True)
+                st.subheader("Verwachte neerslag (mm)")
+                st.line_chart(
+                    data=df_uur_ams,
+                    x='tijd_dt',
+                    y='neersl'
+                )
+            else:
+                st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
 
     # =========================
     # TAB 2: LANDLIJK WEER
@@ -221,14 +195,11 @@ else:
             "Zwolle": [52.5167, 6.0833],
         }
 
+        # Voor lat/lon
         df_uur_verw["lat"] = df_uur_verw["plaats"].map(lambda c: city_coords.get(c, [None, None])[0])
         df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda c: city_coords.get(c, [None, None])[1])
 
         def create_full_map(df, visualisatie_optie, geselecteerde_uur_str, selected_cities):
-            """
-            Args:
-                geselecteerde_uur_str (str): "HH:MM" format
-            """
             nl_map = folium.Map(
                 location=[52.3, 5.3],
                 zoom_start=8,
@@ -302,7 +273,6 @@ else:
 
             return nl_map
 
-        # Example approach with session_state
         if "selected_cities" not in st.session_state:
             st.session_state["selected_cities"] = [cities[0]]
         selected_cities = st.session_state["selected_cities"]
@@ -311,7 +281,6 @@ else:
 
         visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
 
-        # Unieke datetimes
         unieke_tijden = df_selected_cities["tijd_dt"].dropna().unique()
         huidig_uur = datetime.now().replace(minute=0, second=0, microsecond=0)
         if huidig_uur not in unieke_tijden and len(unieke_tijden) > 0:
@@ -325,7 +294,7 @@ else:
             format_func=lambda t: t.strftime('%H:%M') if not pd.isnull(t) else "No time"
         )
 
-        # Om het daadwerkelijke 'tijd' string (HH:MM) te krijgen:
+        # Convert selected_hour back to "HH:MM"
         geselecteerde_uur_str = selected_hour.strftime('%H:%M')
 
         nl_map = create_full_map(df_uur_verw, visualization_option, geselecteerde_uur_str, selected_cities)
