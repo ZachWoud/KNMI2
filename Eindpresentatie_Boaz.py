@@ -129,13 +129,10 @@ with tab2:
     df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[1])
 
     def create_full_map(df, visualisatie_optie, geselecteerde_uur, selected_cities):
-        # Use MapTiler Basic tiles
-        # Replace 'YOUR_MAPTILER_KEY' with your actual API key
         nl_map = folium.Map(
             location=[52.3, 5.3],
             zoom_start=8,
-            tiles=f"https://api.maptiler.com/maps/basic/256/{{z}}/{{x}}/{{y}}.png?key=YOUR_MAPTILER_KEY",
-            attr="MapTiler"
+            tiles="CartoDB positron"
         )
 
         df_filtered = df[df["tijd"] == geselecteerde_uur]
