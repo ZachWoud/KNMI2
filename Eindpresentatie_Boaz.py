@@ -173,7 +173,7 @@ with tab2:
                             'border: 1px solid #fdcb50;'
                             'border-radius: 4px;'
                             'padding: 2px 6px;'
-                            'color: black;'  /* Changed to black */
+                            'color: black;'
                             'font-weight: bold;'
                             'font-size:18px;'
                             'text-align:center;'
