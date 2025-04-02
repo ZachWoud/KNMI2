@@ -13,9 +13,7 @@ import matplotlib.dates as mdates
 # OPTIONAL: Set page layout
 st.set_page_config(layout="wide")
 
-# ------------------------------------------------------------------
-# Function to set a full-page background image (from first code)
-# ------------------------------------------------------------------
+# Function to set a full-page background image
 def set_bg_image(image_file):
     with open(image_file, "rb") as f:
         data = f.read()
@@ -34,81 +32,65 @@ def set_bg_image(image_file):
 # Call the function to set your custom background image
 set_bg_image("pexels-pixabay-531756.jpg")
 
-# ------------------------------------------------------------------
-# Sidebar for navigation (from second code)
-# ------------------------------------------------------------------
-st.sidebar.title("Navigatie")
-page = st.sidebar.radio("Ga naar:", ["Veranderingen", "Nieuwe versie"])
+# ------------------------------------------
+# NAVIGATION
+# ------------------------------------------
+menu = st.sidebar.radio("Navigeer naar:", ["Verandering", "Nieuwe versie"])
 
-# ------------------------------------------------------------------
-# Shared config / data fetching (from first code)
-# ------------------------------------------------------------------
-api_key = 'd5184c3b4e'
-cities = [
-    'Amsterdam', 'Assen', 'Lelystad', 'Leeuwarden', 'Arnhem', 'Groningen', 'Maastricht',
-    'Eindhoven', 'Den Helder', 'Enschede', 'Amersfoort', 'Middelburg', 'Rotterdam', 'Zwolle'
-]
-
-@st.cache_data
-def fetch_weather_data():
-    liveweer, wk_verw, uur_verw, api_data = [], [], [], []
-    for city in cities:
-        api_url = f'https://weerlive.nl/api/weerlive_api_v2.php?key={api_key}&locatie={city}'
-        response = requests.get(api_url)
-        if response.status_code == 200:
-            data = response.json()
-            if 'liveweer' in data:
-                liveweer.extend(data['liveweer'])
-            if 'wk_verw' in data:
-                for entry in data['wk_verw']:
-                    entry['plaats'] = city
-                wk_verw.extend(data['wk_verw'])
-            if 'uur_verw' in data:
-                for entry in data['uur_verw']:
-                    entry['plaats'] = city
-                uur_verw.extend(data['uur_verw'])
-            if 'api_data' in data:
-                api_data.extend(data['api'])
-        else:
-            print(f"Error fetching data for {city}: {response.status_code}")
-    return liveweer, wk_verw, uur_verw, api_data
-
-liveweer, wk_verw, uur_verw, api_data = fetch_weather_data()
-
-# Convert fetched data to DataFrames
-df_liveweer = pd.DataFrame(liveweer)
-df_wk_verw = pd.DataFrame(wk_verw)
-df_uur_verw = pd.DataFrame(uur_verw)
-df_api_data = pd.DataFrame(api_data)  # Not used in UI at the moment but fetched for completeness
-
-
-# ------------------------------------------------------------------
-# Page logic based on sidebar selection
-# ------------------------------------------------------------------
-if page == "Veranderingen":
-    # --------------------------------------------------------------
-    # Page 1: "Veranderingen" 
-    # --------------------------------------------------------------
+if menu == "Verandering":
     st.title("Veranderingen")
-    st.write("Hier kun je de veranderingen of notities toevoegen.")
+    st.write("Hier kun je de veranderingen toevoegen.")
     
 else:
-    # --------------------------------------------------------------
-    # Page 2: "Nieuwe versie" (all your original tabs & logic)
-    # --------------------------------------------------------------
-    
-    # Create Tabs for Amsterdam & Country Weather
+    # ------------------------------------------
+    # API Configuration and Data Fetching
+    # ------------------------------------------
+    api_key = 'd5184c3b4e'
+    cities = [
+        'Amsterdam', 'Assen', 'Lelystad', 'Leeuwarden', 'Arnhem', 'Groningen', 'Maastricht',
+        'Eindhoven', 'Den Helder', 'Enschede', 'Amersfoort', 'Middelburg', 'Rotterdam', 'Zwolle'
+    ]
+
+    @st.cache_data
+    def fetch_weather_data():
+        liveweer, wk_verw, uur_verw, api_data = [], [], [], []
+        for city in cities:
+            api_url = f'https://weerlive.nl/api/weerlive_api_v2.php?key={api_key}&locatie={city}'
+            response = requests.get(api_url)
+            if response.status_code == 200:
+                data = response.json()
+                if 'liveweer' in data:
+                    liveweer.extend(data['liveweer'])
+                if 'wk_verw' in data:
+                    for entry in data['wk_verw']:
+                        entry['plaats'] = city
+                    wk_verw.extend(data['wk_verw'])
+                if 'uur_verw' in data:
+                    for entry in data['uur_verw']:
+                        entry['plaats'] = city
+                    uur_verw.extend(data['uur_verw'])
+                if 'api_data' in data:
+                    api_data.extend(data['api'])
+            else:
+                print(f"Error fetching data for {city}: {response.status_code}")
+        return liveweer, wk_verw, uur_verw, api_data
+
+    liveweer, wk_verw, uur_verw, api_data = fetch_weather_data()
+
+    df_liveweer = pd.DataFrame(liveweer)
+    df_wk_verw = pd.DataFrame(wk_verw)
+    df_uur_verw = pd.DataFrame(uur_verw)
+    df_api_data = pd.DataFrame(api_data)
+
+    # Tabs for Amsterdam & Country Weather
     tab1, tab2 = st.tabs(["Amsterdam Weer", "Landelijk Weer"])
 
     with tab1:
         st.header("Weer in Amsterdam")
-        # You could add additional elements about Amsterdam’s weather using df_liveweer, 
-        # for example tables or text, if desired.
 
     with tab2:
         st.title("Landelijk Weerkaart")
 
-        # Same function from your first code to process hourly data
         @st.cache_data
         def process_hourly_data(df):
             df['datetime'] = pd.to_datetime(df['timestamp'], unit='s')
@@ -117,10 +99,8 @@ else:
             df['tijd'] = pd.to_datetime(df['tijd'], format='%H:%M', errors='coerce')
             return df
 
-        # Process the hourly forecast DataFrame
         df_uur_verw = process_hourly_data(df_uur_verw)
 
-        # Icon mapping (from first code)
         weather_icons = {
             "zonnig": "zonnig.png",
             "bewolkt": "bewolkt.png",
@@ -138,7 +118,6 @@ else:
             "zwaar bewolkt": "zwaarbewolkt.png"
         }
 
-        # City coordinates
         city_coords = {
             "Amsterdam": [52.3676, 4.9041],
             "Assen": [52.9929, 6.5642],
@@ -156,16 +135,14 @@ else:
             "Zwolle": [52.5167, 6.0833],
         }
 
-        # Add lat/lon to df_uur_verw
         df_uur_verw["lat"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[0])
         df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[1])
 
-        # Function to create the Folium map
         def create_full_map(df, visualisatie_optie, geselecteerde_uur, selected_cities):
             nl_map = folium.Map(
                 location=[52.3, 5.3],
                 zoom_start=8,
-                tiles="CartoDB positron"  # from first code
+                tiles="CartoDB positron"
             )
 
             df_filtered = df[df["tijd"] == geselecteerde_uur]
@@ -235,24 +212,18 @@ else:
 
             return nl_map
 
-        # Handle city selection across sessions
         if "selected_cities" not in st.session_state:
             st.session_state["selected_cities"] = [cities[0]]
-
         selected_cities = st.session_state["selected_cities"]
 
-        # Filter to selected cities (if in use)
         df_selected_cities = df_uur_verw[df_uur_verw['plaats'].isin(selected_cities)]
 
-        # Visualization option
         visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
 
-        # Time slider
         unieke_tijden = df_selected_cities["tijd"].dropna().unique()
         huidig_uur = datetime.now().replace(minute=0, second=0, microsecond=0)
         if huidig_uur not in unieke_tijden and len(unieke_tijden) > 0:
             huidig_uur = unieke_tijden[0]
-
         selected_hour = st.select_slider(
             "Selecteer uur",
             options=sorted(unieke_tijden),
@@ -260,6 +231,5 @@ else:
             format_func=lambda t: t.strftime('%H:%M') if not pd.isnull(t) else "No time"
         )
 
-        # Create and display the Folium map
         nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour, selected_cities)
         st_folium(nl_map, width=None, height=600)
