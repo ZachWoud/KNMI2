@@ -9,10 +9,23 @@ from datetime import datetime
 import numpy as np
 import matplotlib.dates as mdates
 
-# Custom CSS for weather broadcast styling
+# Custom CSS for weather broadcast styling and background image
 st.markdown(
     """
     <style>
+    /* Background image with opacity using a pseudo-element */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url("pexels-pixabay-531756.jpg") no-repeat center center fixed;
+      background-size: cover;
+      opacity: 0.8;
+      z-index: -1;
+    }
     /* Global text and header colors set to #fdcb50 */
     body, h1, h2, h3, h4, h5, h6, .css-18e3th9, .css-1d391kg {
         color: #fdcb50 !important;
@@ -173,7 +186,7 @@ with tab2:
                             'border: 1px solid #fdcb50;'
                             'border-radius: 4px;'
                             'padding: 2px 6px;'
-                            'color: black;'
+                            'color: black;'  /* Temperatuur text in black */
                             'font-weight: bold;'
                             'font-size:18px;'
                             'text-align:center;'
