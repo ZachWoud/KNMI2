@@ -20,7 +20,6 @@ def set_bg_image(image_file):
     encoded = base64.b64encode(data).decode()
     page_bg_css = f"""
     <style>
-    /* Use a custom background image for the entire app */
     .stApp {{
         background: url("data:image/jpg;base64,{encoded}");
         background-size: cover;
@@ -130,11 +129,13 @@ with tab2:
     df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[1])
 
     def create_full_map(df, visualisatie_optie, geselecteerde_uur, selected_cities):
-        # Keep Folium's defaults
+        # Use MapTiler Basic tiles
+        # Replace 'YOUR_MAPTILER_KEY' with your actual API key
         nl_map = folium.Map(
             location=[52.3, 5.3],
             zoom_start=8,
-            tiles="CartoDB positron"
+            tiles=f"https://api.maptiler.com/maps/basic/256/{{z}}/{{x}}/{{y}}.png?key=YOUR_MAPTILER_KEY",
+            attr="MapTiler"
         )
 
         df_filtered = df[df["tijd"] == geselecteerde_uur]
@@ -204,22 +205,18 @@ with tab2:
 
         return nl_map
 
-    # State management
     if "selected_cities" not in st.session_state:
         st.session_state["selected_cities"] = [cities[0]]
     selected_cities = st.session_state["selected_cities"]
 
-    # Filter only selected cities
     df_selected_cities = df_uur_verw[df_uur_verw['plaats'].isin(selected_cities)]
 
-    # Visualization option & time selection
     visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
-    unieke_tijden = df_selected_cities["tijd"].dropna().unique()
 
+    unieke_tijden = df_selected_cities["tijd"].dropna().unique()
     huidig_uur = datetime.now().replace(minute=0, second=0, microsecond=0)
     if huidig_uur not in unieke_tijden and len(unieke_tijden) > 0:
         huidig_uur = unieke_tijden[0]
-
     selected_hour = st.select_slider(
         "Selecteer uur",
         options=sorted(unieke_tijden),
@@ -227,7 +224,5 @@ with tab2:
         format_func=lambda t: t.strftime('%H:%M') if not pd.isnull(t) else "No time"
     )
 
-    # Create and display the map
     nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour, selected_cities)
-    # Let Streamlit handle sizing. Try a fixed height to see if black bars go away:
     st_folium(nl_map, width=None, height=600)
