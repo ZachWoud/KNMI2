@@ -4,4 +4,3 @@ pandas
 requests
 folium
 streamlit_folium
-base64
