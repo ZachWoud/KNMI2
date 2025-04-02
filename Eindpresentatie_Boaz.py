@@ -25,8 +25,16 @@ def set_bg_image(image_file):
         background-size: cover;
         background-attachment: fixed;
     }}
-    /* Make any iframe transparent to avoid black bars or boxes */
+    /* Make iframes transparent to avoid black bars or boxes */
     iframe {{
+        background: transparent !important;
+        width: 100% !important;
+        height: 100% !important;
+    }}
+    /* Force folium-map container to be transparent and fill space */
+    .folium-map {{
+        width: 100% !important;
+        height: 100% !important;
         background: transparent !important;
     }}
     </style>
@@ -133,7 +141,14 @@ with tab2:
     df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[1])
 
     def create_full_map(df, visualisatie_optie, geselecteerde_uur, selected_cities):
-        nl_map = folium.Map(location=[52.3, 5.3], zoom_start=8, tiles="CartoDB positron")
+        # Explicitly set the map to 100% for width/height
+        nl_map = folium.Map(
+            location=[52.3, 5.3], 
+            zoom_start=8, 
+            tiles="CartoDB positron",
+            width='100%', 
+            height='100%'
+        )
         df_filtered = df[df["tijd"] == geselecteerde_uur]
 
         for index, row in df_filtered.iterrows():
@@ -199,6 +214,19 @@ with tab2:
                     )
                 ).add_to(nl_map)
 
+        # Also inject a small extra style forcing the Folium container to fill:
+        nl_map.get_root().html.add_child(
+            folium.Element("""
+                <style>
+                    .folium-map {
+                        width: 100% !important;
+                        height: 100% !important;
+                        background: transparent !important;
+                    }
+                </style>
+            """)
+        )
+
         return nl_map
 
     # State management
@@ -226,5 +254,6 @@ with tab2:
 
     # Create and display the map
     nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour, selected_cities)
-    # Let Streamlit automatically size the Folium map by leaving width/height off
-    st_folium(nl_map)
+    # Let Streamlit automatically size the Folium map 
+    # by *not* setting explicit width/height in st_folium
+    st_folium(nl_map, width=None, height=None)
