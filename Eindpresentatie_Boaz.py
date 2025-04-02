@@ -104,7 +104,7 @@ with tab2:
     df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[1])
 
     def create_full_map(df, visualisatie_optie, geselecteerde_uur, selected_cities):
-        nl_map = folium.Map(location=[52.3, 5.3], zoom_start=8)
+        nl_map = folium.Map(location=[52.3, 5.3], zoom_start=8, tiles="CartoDB positron")
         df_filtered = df[df["tijd"] == geselecteerde_uur]
 
         for index, row in df_filtered.iterrows():
