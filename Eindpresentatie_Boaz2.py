@@ -164,8 +164,8 @@ else:
         weather_icons = {
             "zonnig": "zonnig.png",
             "bewolkt": "bewolkt.png",
-            "half bewolkt": "halfbewolkt.png",
-            "licht bewolkt": "halfbewolkt.png",
+            "halfbewolkt": "halfbewolkt.png",
+            "lichtbewolkt": "halfbewolkt.png",
             "regen": "regen.png",
             "buien": "buien.png",
             "mist": "mist.png",
@@ -175,7 +175,7 @@ else:
             "helderenacht": "helderenacht.png",
             "nachtmist": "nachtmist.png",
             "wolkennacht": "wolkennacht.png",
-            "zwaar bewolkt": "zwaarbewolkt.png"
+            "zwaarbewolkt": "zwaarbewolkt.png"
         }
 
         city_coords = {
