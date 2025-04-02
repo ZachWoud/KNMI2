@@ -218,4 +218,4 @@ with tab2:
     )
 
     nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour, selected_cities)
-    st_folium(nl_map, width=700)
+    st_folium(nl_map)
