@@ -29,9 +29,6 @@ def set_bg_image(image_file):
     """
     st.markdown(page_bg_css, unsafe_allow_html=True)
 
-# Call the function to set your custom background image
-set_bg_image("pexels-pixabay-531756.jpg")
-
 # ------------------------------------------
 # NAVIGATION
 # ------------------------------------------
@@ -40,8 +37,11 @@ menu = st.sidebar.radio("Navigeer naar:", ["Verandering", "Nieuwe versie"])
 if menu == "Verandering":
     st.title("Veranderingen")
     st.write("Hier kun je de veranderingen toevoegen.")
-    
+
 else:
+    # Only call the background here, so it appears on "Nieuwe versie" only
+    set_bg_image("pexels-pixabay-531756.jpg")
+
     # ------------------------------------------
     # API Configuration and Data Fetching
     # ------------------------------------------
