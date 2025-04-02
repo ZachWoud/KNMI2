@@ -9,27 +9,38 @@ from datetime import datetime
 import numpy as np
 import matplotlib.dates as mdates
 
-# Custom CSS for dashboard styling in weather broadcast colors
+# Revised custom CSS for dashboard styling in weather broadcast colors
 st.markdown(
     """
     <style>
-    /* Slider styling */
-    .stSlider > div {
+    /* Global text and header colors */
+    body, h1, h2, h3, h4, h5, h6, .css-18e3th9, .css-1d391kg {
         color: #93b2f4 !important;
+    }
+    /* Slider styling: targeting BaseWeb slider container and input */
+    [data-baseweb="slider"] > div {
         background-color: #d0dafb !important;
+        border: 1px solid #93b2f4 !important;
+        border-radius: 4px;
+    }
+    [data-baseweb="slider"] input[type="range"] {
+        accent-color: #fdcb50 !important;
     }
     /* Button styling */
     div.stButton > button {
-        background-color: #fdcb50;
-        color: #000;
+        background-color: #fdcb50 !important;
+        color: #000 !important;
+        border: none !important;
+        border-radius: 4px;
     }
-    /* Selectbox styling */
-    .stSelectbox {
-        color: #93b2f4 !important;
+    /* Select box styling: targeting BaseWeb select containers */
+    [data-baseweb="select"] > div {
         background-color: #d0dafb !important;
+        border: 1px solid #93b2f4 !important;
+        border-radius: 4px;
+        color: #93b2f4 !important;
     }
-    /* Header and text styling */
-    .css-1d391kg, .css-18e3th9 {
+    [data-baseweb="select"] > div > div {
         color: #93b2f4 !important;
     }
     </style>
