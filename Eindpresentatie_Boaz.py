@@ -9,49 +9,6 @@ from datetime import datetime
 import numpy as np
 import matplotlib.dates as mdates
 
-# Custom CSS for weather broadcast styling and background image
-st.markdown(
-    """
-    <style>
-    body {
-        background: url("pexels-pixabay-531756.jpg") no-repeat center center fixed;
-        background-size: cover;
-    }
-    /* Global text and header colors set to #fdcb50 */
-    body, h1, h2, h3, h4, h5, h6, .css-18e3th9, .css-1d391kg {
-        color: #fdcb50 !important;
-    }
-    /* Slider styling: white background with border #fdcb50 */
-    [data-baseweb="slider"] > div {
-        background-color: white !important;
-        border: 1px solid #fdcb50 !important;
-        border-radius: 4px;
-    }
-    [data-baseweb="slider"] input[type="range"] {
-        accent-color: #fdcb50 !important;
-    }
-    /* Button styling: white background, #fdcb50 border and text */
-    div.stButton > button {
-        background-color: white !important;
-        color: #fdcb50 !important;
-        border: 1px solid #fdcb50 !important;
-        border-radius: 4px;
-    }
-    /* Select box styling: white background with border #fdcb50 but text remains black */
-    [data-baseweb="select"] > div {
-        background-color: white !important;
-        border: 1px solid #fdcb50 !important;
-        border-radius: 4px;
-        color: black !important;
-    }
-    [data-baseweb="select"] > div > div {
-        color: black !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # API Configuration
 api_key = 'd5184c3b4e'
 cities = [
@@ -174,10 +131,10 @@ with tab2:
                             'white-space:nowrap;'
                             'line-height:1;'
                             'background-color: rgba(255, 255, 255, 0.7);'
-                            'border: 1px solid #fdcb50;'
+                            'border: 1px solid red;'
                             'border-radius: 4px;'
                             'padding: 2px 6px;'
-                            'color: black;'
+                            'color: red;'
                             'font-weight: bold;'
                             'font-size:18px;'
                             'text-align:center;'
@@ -199,10 +156,10 @@ with tab2:
                             'white-space:nowrap;'
                             'line-height:1;'
                             'background-color: rgba(255, 255, 255, 0.7);'
-                            'border: 1px solid #93b2f4;'
+                            'border: 1px solid blue;'
                             'border-radius: 4px;'
                             'padding: 2px 6px;'
-                            'color: #93b2f4;'
+                            'color: blue;'
                             'font-weight: bold;'
                             'font-size:18px;'
                             'text-align:center;'
