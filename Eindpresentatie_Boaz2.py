@@ -13,7 +13,6 @@ import matplotlib.dates as mdates
 # OPTIONAL: Set page layout
 st.set_page_config(layout="wide")
 
-# Function to set a full-page background image
 def set_bg_image(image_file):
     with open(image_file, "rb") as f:
         data = f.read()
@@ -39,7 +38,7 @@ if menu == "Verandering":
     st.write("Hier kun je de veranderingen toevoegen.")
 
 else:
-    # Only call the background here, so it appears on "Nieuwe versie" only
+    # Alleen achtergrond instellen in "Nieuwe versie"
     set_bg_image("pexels-pixabay-531756.jpg")
 
     # ------------------------------------------
@@ -82,24 +81,106 @@ else:
     df_uur_verw = pd.DataFrame(uur_verw)
     df_api_data = pd.DataFrame(api_data)
 
-    # Tabs for Amsterdam & Country Weather
+    # ------------------------------------------
+    # Data Preparation Examples (if needed)
+    # ------------------------------------------
+    @st.cache_data
+    def process_hourly_data(df):
+        # Convert timestamp to datetime, and split into date & time
+        df['datetime'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
+        df['datum'] = df['datetime'].dt.strftime('%d-%m-%Y')
+        df['tijd'] = df['datetime'].dt.strftime('%H:%M')
+        # Also keep a proper datetime for the time, if you want to plot by time on x-axis
+        df['tijd_dt'] = pd.to_datetime(df['tijd'], format='%H:%M', errors='coerce')
+        return df
+
+    df_uur_verw = process_hourly_data(df_uur_verw)
+
+    # ------------------------------------------
+    # TABS
+    # ------------------------------------------
     tab1, tab2 = st.tabs(["Amsterdam Weer", "Landelijk Weer"])
 
+    # =========================
+    # TAB 1: AMSTERDAM WEER
+    # =========================
     with tab1:
         st.header("Weer in Amsterdam")
 
+        # -----------------------------
+        # 1. Select today's row in df_wk_verw for Amsterdam
+        # -----------------------------
+        # Typically, df_wk_verw might contain columns like: ['plaats', 'datum', 'tmax', 'tmin', 'samenv', etc.]
+        # We'll search for today's date as dd-mm-yyyy
+        today_str = datetime.now().strftime('%d-%m-%Y')
+        df_wk_ams = df_wk_verw[(df_wk_verw['plaats'] == 'Amsterdam') & (df_wk_verw['datum'] == today_str)]
+        
+        # Fallback if not found: just take the first row for Amsterdam
+        if df_wk_ams.empty:
+            df_wk_ams = df_wk_verw[df_wk_verw['plaats'] == 'Amsterdam'].head(1)
+
+        # Extract data from that row (assuming columns exist)
+        if not df_wk_ams.empty:
+            row = df_wk_ams.iloc[0]
+            tmax = row.get('tmax', 'N/A')
+            tmin = row.get('tmin', 'N/A')
+            samenv = row.get('samenv', 'Geen samenvatting beschikbaar')
+            
+            # Gemiddelde temperatuur: kan uit df_wk_verw komen, of (tmax + tmin)/2
+            # Hier doen we simpelweg (tmax + tmin) / 2, als die numeriek zijn
+            try:
+                tavg = (float(tmax) + float(tmin)) / 2
+            except:
+                tavg = 'N/A'
+        else:
+            # Als er écht niks is...
+            tmax, tmin, tavg, samenv = 'N/A', 'N/A', 'N/A', 'Geen data gevonden'
+
+        # -----------------------------
+        # 2. Show metric widgets
+        # -----------------------------
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Max Temp (°C)", tmax)
+        col2.metric("Min Temp (°C)", tmin)
+        col3.metric("Gem. Temp (°C)", tavg)
+
+        # -----------------------------
+        # 3. Tekstuele samenvatting
+        # -----------------------------
+        st.subheader("Samenvatting")
+        st.write(samenv)
+
+        # -----------------------------
+        # 4. Grafiek neerslag (uurdata)
+        # -----------------------------
+        # Filter df_uur_verw naar Amsterdam & vandaag
+        df_uur_ams = df_uur_verw[
+            (df_uur_verw['plaats'] == 'Amsterdam') &
+            (df_uur_verw['datum'] == today_str)
+        ].copy()
+
+        # Soms staat neerslag in column 'neersl' of 'mm', etc.  
+        # We assume 'neersl' is the precipitation column.
+        # Sort by tijd_dt so the line chart is chronological
+        df_uur_ams.sort_values('tijd_dt', inplace=True)
+
+        # Check if there's any data:
+        if df_uur_ams.empty:
+            st.warning("Geen uurlijke data gevonden voor vandaag in Amsterdam.")
+        else:
+            st.subheader("Verwachte neerslag gedurende de dag")
+            # Met Streamlit kun je direct een line_chart doen:
+            st.line_chart(
+                data=df_uur_ams,
+                x='tijd_dt',   # x-as: tijd
+                y='neersl',    # y-as: neerslag
+            )
+
+    # =========================
+    # TAB 2: LANDLIJK WEER
+    # =========================
     with tab2:
         st.title("Landelijk Weerkaart")
-
-        @st.cache_data
-        def process_hourly_data(df):
-            df['datetime'] = pd.to_datetime(df['timestamp'], unit='s')
-            df['datum'] = df['datetime'].dt.strftime('%d-%m-%Y')
-            df['tijd'] = df['datetime'].dt.strftime('%H:%M')
-            df['tijd'] = pd.to_datetime(df['tijd'], format='%H:%M', errors='coerce')
-            return df
-
-        df_uur_verw = process_hourly_data(df_uur_verw)
 
         weather_icons = {
             "zonnig": "zonnig.png",
@@ -135,8 +216,9 @@ else:
             "Zwolle": [52.5167, 6.0833],
         }
 
-        df_uur_verw["lat"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[0])
-        df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[1])
+        # Add lat/lon columns
+        df_uur_verw["lat"] = df_uur_verw["plaats"].map(lambda c: city_coords.get(c, [None, None])[0])
+        df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda c: city_coords.get(c, [None, None])[1])
 
         def create_full_map(df, visualisatie_optie, geselecteerde_uur, selected_cities):
             nl_map = folium.Map(
@@ -147,7 +229,7 @@ else:
 
             df_filtered = df[df["tijd"] == geselecteerde_uur]
 
-            for index, row in df_filtered.iterrows():
+            for _, row in df_filtered.iterrows():
                 if visualisatie_optie == "Weer":
                     icon_file = weather_icons.get(row['image'].lower(), "bewolkt.png")
                     icon_path = f"iconen-weerlive/{icon_file}"
@@ -220,16 +302,25 @@ else:
 
         visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
 
-        unieke_tijden = df_selected_cities["tijd"].dropna().unique()
+        unieke_tijden = df_selected_cities["tijd_dt"].dropna().unique()
         huidig_uur = datetime.now().replace(minute=0, second=0, microsecond=0)
+        # Zet huidig_uur naar de eerste beschikbare tijd als de huidige tijd niet in de lijst zit
         if huidig_uur not in unieke_tijden and len(unieke_tijden) > 0:
             huidig_uur = unieke_tijden[0]
+
+        # We need to display times in HH:MM format. We'll let the slider use the 'tijd' string or the actual datetime
+        # For clarity, we can put them in a dictionary or just pick from the unique times.
+        # Here, let's sort them and do a select_slider with a simple format:
+        sorted_times = sorted(unieke_tijden)
         selected_hour = st.select_slider(
             "Selecteer uur",
-            options=sorted(unieke_tijden),
+            options=sorted_times,
             value=huidig_uur,
             format_func=lambda t: t.strftime('%H:%M') if not pd.isnull(t) else "No time"
         )
 
-        nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour, selected_cities)
+        # We need to feed back the 'tijd' string that matches selected_hour (which is a datetime).
+        geselecteerde_uur_str = selected_hour.strftime('%H:%M')
+
+        nl_map = create_full_map(df_uur_verw, visualization_option, geselecteerde_uur_str, selected_cities)
         st_folium(nl_map, width=None, height=600)
