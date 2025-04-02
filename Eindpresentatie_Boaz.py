@@ -33,15 +33,15 @@ st.markdown(
         border: 1px solid #fdcb50 !important;
         border-radius: 4px;
     }
-    /* Select box styling: white background with border #fdcb50 */
+    /* Select box styling: white background with border #fdcb50 but text remains black */
     [data-baseweb="select"] > div {
         background-color: white !important;
         border: 1px solid #fdcb50 !important;
         border-radius: 4px;
-        color: #fdcb50 !important;
+        color: black !important;
     }
     [data-baseweb="select"] > div > div {
-        color: #fdcb50 !important;
+        color: black !important;
     }
     </style>
     """,
