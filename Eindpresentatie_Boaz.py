@@ -1,3 +1,4 @@
+import base64
 import requests
 import pandas as pd
 import streamlit as st
@@ -9,7 +10,33 @@ from datetime import datetime
 import numpy as np
 import matplotlib.dates as mdates
 
-# API Configuration
+# OPTIONAL: Set page layout
+st.set_page_config(layout="wide")
+
+# Function to set a full-page background image
+def set_bg_image(image_file):
+    with open(image_file, "rb") as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+    page_bg_css = f"""
+    <style>
+    .stApp {{
+        background: url("data:image/jpg;base64,{encoded}");
+        background-size: cover;
+        background-attachment: fixed;
+    }}
+    </style>
+    """
+    st.markdown(page_bg_css, unsafe_allow_html=True)
+
+# Call the function to set your custom background image.
+# Make sure the file 'pexels-pixabay-531756.jpg' is in the same folder 
+# or adjust the file path below if needed.
+set_bg_image("pexels-pixabay-531756.jpg")
+
+# ------------------------------------------
+# API Configuration and Data Fetching
+# ------------------------------------------
 api_key = 'd5184c3b4e'
 cities = [
     'Amsterdam', 'Assen', 'Lelystad', 'Leeuwarden', 'Arnhem', 'Groningen', 'Maastricht',
@@ -176,7 +203,6 @@ with tab2:
         st.session_state["selected_cities"] = [cities[0]]
 
     selected_cities = st.session_state["selected_cities"]
-
     df_selected_cities = df_uur_verw[df_uur_verw['plaats'].isin(selected_cities)]
     visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
 
