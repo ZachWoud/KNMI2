@@ -9,39 +9,39 @@ from datetime import datetime
 import numpy as np
 import matplotlib.dates as mdates
 
-# Revised custom CSS for dashboard styling in weather broadcast colors
+# Custom CSS for weather broadcast styling
 st.markdown(
     """
     <style>
-    /* Global text and header colors */
+    /* Global text and header colors set to #fdcb50 */
     body, h1, h2, h3, h4, h5, h6, .css-18e3th9, .css-1d391kg {
-        color: #93b2f4 !important;
+        color: #fdcb50 !important;
     }
-    /* Slider styling: targeting BaseWeb slider container and input */
+    /* Slider styling: white background with border #fdcb50 */
     [data-baseweb="slider"] > div {
-        background-color: #d0dafb !important;
-        border: 1px solid #93b2f4 !important;
+        background-color: white !important;
+        border: 1px solid #fdcb50 !important;
         border-radius: 4px;
     }
     [data-baseweb="slider"] input[type="range"] {
         accent-color: #fdcb50 !important;
     }
-    /* Button styling */
+    /* Button styling: white background, #fdcb50 border and text */
     div.stButton > button {
-        background-color: #fdcb50 !important;
-        color: #000 !important;
-        border: none !important;
+        background-color: white !important;
+        color: #fdcb50 !important;
+        border: 1px solid #fdcb50 !important;
         border-radius: 4px;
     }
-    /* Select box styling: targeting BaseWeb select containers */
+    /* Select box styling: white background with border #fdcb50 */
     [data-baseweb="select"] > div {
-        background-color: #d0dafb !important;
-        border: 1px solid #93b2f4 !important;
+        background-color: white !important;
+        border: 1px solid #fdcb50 !important;
         border-radius: 4px;
-        color: #93b2f4 !important;
+        color: #fdcb50 !important;
     }
     [data-baseweb="select"] > div > div {
-        color: #93b2f4 !important;
+        color: #fdcb50 !important;
     }
     </style>
     """,
@@ -173,7 +173,7 @@ with tab2:
                             'border: 1px solid #fdcb50;'
                             'border-radius: 4px;'
                             'padding: 2px 6px;'
-                            'color: #fdcb50;'
+                            'color: black;'  /* Changed to black */
                             'font-weight: bold;'
                             'font-size:18px;'
                             'text-align:center;'
