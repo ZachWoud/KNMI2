@@ -484,7 +484,6 @@ elif menu == 'Nieuwe versie':
         
         df_uur_ams = df_uur_verw[
             (df_uur_verw['plaats'] == 'Amsterdam')
-            )
         ].copy()
 
         # Zet expliciet een kolom 'tijd_24h'
