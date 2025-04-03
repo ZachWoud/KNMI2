@@ -543,6 +543,7 @@ elif menu == 'Nieuwe versie':
                     y='gr',
                     x_label='Uur van de dag',
                     y_label='Zonnestraling (Watt/M²)',
+                    color='ffa500',
                 )
             else:
                 st.info("Geen zonlichtkolom ('gr') gevonden in de uurlijkse data.")
