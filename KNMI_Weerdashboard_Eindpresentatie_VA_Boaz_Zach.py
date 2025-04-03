@@ -528,7 +528,7 @@ elif menu == 'Nieuwe versie':
                     y=alt.Y('neersl', scale=alt.Scale(domain=[0, 25])),
                     x_label='Uur van de dag',
                     y_label='Neerslag (mm)',
-                    )
+                )
              
                  st.altair_chart(chart, use_container_width=True)
                 
