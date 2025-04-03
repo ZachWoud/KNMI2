@@ -614,7 +614,7 @@ with tab1:
             """
             nl_map = folium.Map(
                 location=[52.3, 5.3],
-                zoom_start=8,
+                zoom_start=9,
                 tiles="CartoDB positron"
             )
 
