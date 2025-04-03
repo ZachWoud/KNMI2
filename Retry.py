@@ -341,7 +341,6 @@ if menu == "Oude versie":
                 ax1.grid(True)
                 ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
                 ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-                # We laten de x-labels 45° gedraaid, want in de oude versie stond het ook zo.
                 plt.setp(ax1.get_xticklabels(), rotation=45, ha="right")
 
                 fig.legend(loc='upper right', bbox_to_anchor=(1.1, 1), bbox_transform=ax1.transAxes)
@@ -521,7 +520,6 @@ elif menu == 'Nieuwe versie':
 
             ################################################
             # 4.6) GRAFIEK NEERSLAG (GEFORCEERDE 24h RANGE)
-            #     NU VIA MATPLOTLIB ZODAT TIJDEN HORIZONTAAL
             ################################################
             if 'neersl' in df_uur_ams.columns:
                 # Maak altijd 24-uurs range (00:00 t/m 23:00) voor deze dag
@@ -534,24 +532,18 @@ elif menu == 'Nieuwe versie':
                 merged_df = pd.merge(full_df, df_uur_ams, on='tijd_24h', how='left', suffixes=('', '_orig'))
 
                 st.subheader("Verwachte neerslag (mm)")
-
-                fig_neersl, ax_neersl = plt.subplots(figsize=(10, 4))
-                ax_neersl.plot(merged_df['tijd_24h'], merged_df['neersl'], marker='o', linestyle='-')
-                ax_neersl.set_xlabel('Uur van de dag')
-                ax_neersl.set_ylabel('Neerslag (mm)')
-
-                # Zet de x-labels horizontaal
-                plt.setp(ax_neersl.get_xticklabels(), rotation=90, ha='center')
-                
-                ax_neersl.set_title("Neerslag gedurende de dag (Amsterdam)")
-                st.pyplot(fig_neersl)
-
+                st.line_chart(
+                    data=merged_df,
+                    x='tijd_24h',
+                    y='neersl',
+                    x_label='Uur van de dag',
+                    y_label='Neerslag (mm)',
+                )
             else:
                 st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
 
             ################################################
             # 4.7) GRAFIEK ZONLICHT (GEFORCEERDE 24h RANGE)
-            #     OOK MATPLOTLIB (TIJDEN HORIZONTAAL)
             ################################################
             if 'gr' in df_uur_ams.columns:
                 # Idem, maak een 24-uurs range voor vandaag
@@ -564,18 +556,13 @@ elif menu == 'Nieuwe versie':
                 merged_df = pd.merge(full_df, df_uur_ams, on='tijd_24h', how='left', suffixes=('', '_orig'))
 
                 st.subheader("Verwachte zonnestraling (Watt/M²)")
-                
-                fig_zon, ax_zon = plt.subplots(figsize=(10, 4))
-                ax_zon.plot(merged_df['tijd_24h'], merged_df['gr'], marker='o', linestyle='-')
-                ax_zon.set_xlabel('Uur van de dag')
-                ax_zon.set_ylabel('Zonnestraling (W/m²)')
-
-                # Zet de x-labels horizontaal
-                plt.setp(ax_zon.get_xticklabels(), rotation=90, ha='center')
-                
-                ax_zon.set_title("Zonnestraling gedurende de dag (Amsterdam)")
-                st.pyplot(fig_zon)
-
+                st.line_chart(
+                    data=merged_df,
+                    x='tijd_24h',
+                    y='gr',
+                    x_label='Uur van de dag',
+                    y_label='Zonnestraling (Watt/M²)',
+                )
             else:
                 st.info("Geen zonlichtkolom ('gr') gevonden in de uurlijkse data.")
 
@@ -758,4 +745,3 @@ else:
     - ChatGPT (https://chatgpt.com/)
     - Weeronline als inspiratiebron (https://www.weeronline.nl/)
     """)
-
