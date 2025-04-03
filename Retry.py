@@ -524,7 +524,7 @@ elif menu == 'Nieuwe versie':
                 st.subheader("Verwachte neerslag (mm)")
                 st.line_chart(
                     data=df_uur_ams,
-                    x='tijd_24h',
+                    x='tijd',
                     y='neersl',
                     x_label='Uur van de dag',
                     y_label='Neerslag (mm)',
