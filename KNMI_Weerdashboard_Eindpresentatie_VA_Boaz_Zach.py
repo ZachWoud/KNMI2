@@ -573,7 +573,8 @@ elif menu == 'Nieuwe versie':
             "helderenacht": "helderenacht.png",
             "nachtmist": "nachtmist.png",
             "wolkennacht": "wolkennacht.png",
-            "zwaarbewolkt": "zwaarbewolkt.png"
+            "zwaarbewolkt": "zwaarbewolkt.png",
+            "nachtbewolkt": "wolkennacht.png"
         }
  
         # ------------------------------------------
