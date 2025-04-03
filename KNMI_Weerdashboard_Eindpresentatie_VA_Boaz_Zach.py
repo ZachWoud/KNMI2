@@ -522,12 +522,14 @@ elif menu == 'Nieuwe versie':
             ################################################
             if 'neersl' in df_uur_ams.columns:
                 st.subheader("Verwachte neerslag (mm)")
-                st.line_chart(
+                chart = alt.Chart(df_uur_ams).mark_line().encode(
                     data=df_uur_ams,
                     x='tijd_24h',
                     y=alt.Y('neersl', scale=alt.Scale(domain=[0, 25])),
                     x_label='Uur van de dag',
                     y_label='Neerslag (mm)',
+                 
+                 st.altair_chart(chart, use_container_width=True)
                 )
             else:
                 st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
