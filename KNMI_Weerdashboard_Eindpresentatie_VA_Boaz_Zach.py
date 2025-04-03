@@ -524,7 +524,7 @@ elif menu == 'Nieuwe versie':
                 st.subheader("Verwachte neerslag (mm)")
              
                 chart = alt.Chart(df_uur_ams).mark_line().encode(
-                    x=alt.X('tijd_24h', title='Uur van de dag')
+                    x=alt.X('tijd_24h', title='Uur van de dag'),
                     y=alt.Y('neersl', scale=alt.Scale(domain=[0, 25]), title='Neerslag (mm)')
                 )
              
