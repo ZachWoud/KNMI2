@@ -530,7 +530,7 @@ elif menu == 'Nieuwe versie':
                     y_label='Neerslag (mm)',
                 )
              
-                 st.altair_chart(chart, use_container_width=True)
+                st.altair_chart(chart, use_container_width=True)
                 
             else:
                 st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
