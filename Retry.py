@@ -57,7 +57,8 @@ if menu == "Oude versie":
     with tab3:
         st.title("Oude Versie Weerapp")
 
-        # -- Imports (deze staan hier opnieuw omdat het code-fragment in een apart stuk draait) --
+        # -- Imports (deze staan hier opnieuw omdat dit code-fragment
+        #    in een apart stuk draait) --
         import requests
         import pandas as pd
         import streamlit as st
@@ -186,8 +187,6 @@ if menu == "Oude versie":
             df_filtered = df[df["tijd"] == geselecteerde_uur]
 
             for index, row in df_filtered.iterrows():
-                # --- Als je markers alleen voor selected_cities wilt, kun je dat hier checken. ---
-
                 if visualisatie_optie == "Weer":
                     icon_file = weather_icons.get(row['image'].lower(), "bewolkt.png")
                     icon_path = f"iconen-weerlive/{icon_file}"
@@ -488,8 +487,13 @@ elif menu == 'Nieuwe versie':
             (df_uur_verw['datetime'].dt.date == today_date)
         ].copy()
 
+        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        # Hier zorgen we dat 'tijd_24h' zeker bestaat, anders kan de merge hieronder falen
+        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        df_uur_ams['tijd_24h'] = df_uur_ams['datetime'].dt.strftime('%H:%M')
+
         if df_uur_ams.empty:
-            st.warning("Geen uurlijkse voorspellingen voor Amsterdam gevonden voor vandaag.")
+            st.warning("Geen uurlijke voorspellingen voor Amsterdam gevonden voor vandaag.")
         else:
             # 4.2) Convert columns naar numeriek (temp, neersl) indien nodig
             for col in ['temp', 'neersl']:
@@ -761,3 +765,4 @@ else:
     - ChatGPT (https://chatgpt.com/)
     - Weeronline als inspiratiebron (https://www.weeronline.nl/)
     """)
+
