@@ -479,6 +479,7 @@ elif menu == 'Nieuwe versie':
         st.header("Weer in Amsterdam (vandaag)", divider='gray')
 
         # 4.1) Filteren op Amsterdam + vandaag
+        df_uur_verw = process_hourly_data(df_uur_verw)
         
         df_uur_ams = df_uur_verw[
             (df_uur_verw['plaats'] == 'Amsterdam')
