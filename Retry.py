@@ -467,8 +467,6 @@ elif menu == 'Nieuwe versie':
         df['tijd'] = df['datetime'].dt.strftime('%H:%M')
         return df
 
-    df_uur_verw = process_hourly_data(df_uur_verw)
-
     # ----------------------------------------------------
     # 4) TABBLADEN: "Amsterdam Weer" & "Landelijk Weer"
     # ----------------------------------------------------
