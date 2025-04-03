@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import numpy as np
 import matplotlib.dates as mdates
-
+ 
 # OPTIONAL: Set page layout
 st.set_page_config(layout="wide")
-
+ 
 ##########################################################
 #                 ACHTERGROND-INSTELLING
 #     (alleen gebruikt in de "Nieuwe versie"-sectie)
@@ -28,35 +28,35 @@ def set_bg_image(image_file):
         data = f.read()
     encoded = base64.b64encode(data).decode()
     page_bg_css = f"""
-    <style>
+<style>
     .stApp {{
         background: url("data:image/jpg;base64,{encoded}");
         background-size: cover;
         background-attachment: fixed;
     }}
-    </style>
+</style>
     """
     st.markdown(page_bg_css, unsafe_allow_html=True)
-
+ 
 ##########################################################
 #                  NAVIGATIE-MENU
 #     Bepaalt welke tab (Oude versie / Nieuwe versie)
 #     de gebruiker te zien krijgt.
 ##########################################################
 menu = st.sidebar.radio("Navigeer naar:", ["Oude versie", "Nieuwe versie", "Bronnen"])
-
+ 
 ##########################################################
 #           O U D E   V E R S I E   (Weerapp)
 ##########################################################
 if menu == "Oude versie":
     tab3, tab4 = st.tabs(["Oude versie", "Veranderingen"])
-
+ 
     ######################################################
     #           TAB 3: Volledige 'oude' code
     ######################################################
     with tab3:
         st.title("Oude Versie Weerapp")
-
+ 
         # -- Imports (deze staan hier opnieuw omdat dit code-fragment
         #    in een apart stuk draait) --
         import requests
@@ -69,7 +69,7 @@ if menu == "Oude versie":
         from datetime import datetime
         import numpy as np
         import matplotlib.dates as mdates
-
+ 
         # ------------------------------------------
         # API CONFIGURATIE & TE DEFINIËREN CITIES
         # ------------------------------------------
@@ -78,7 +78,7 @@ if menu == "Oude versie":
             'Assen', 'Lelystad', 'Leeuwarden', 'Arnhem', 'Groningen', 'Maastricht',
             'Eindhoven', 'Den Helder', 'Enschede', 'Amersfoort', 'Middelburg', 'Rotterdam'
         ]
-
+ 
         @st.cache_data
         def fetch_weather_data():
             """
@@ -106,16 +106,16 @@ if menu == "Oude versie":
                 else:
                     print(f"Error fetching data for {city}: {response.status_code}")
             return liveweer, wk_verw, uur_verw, api_data
-
+ 
         # Ophalen van alle data
         liveweer, wk_verw, uur_verw, api_data = fetch_weather_data()
-
+ 
         # DataFrames aanmaken van de opgehaalde data
         df_liveweer = pd.DataFrame(liveweer)
         df_wk_verw = pd.DataFrame(wk_verw)
         df_uur_verw = pd.DataFrame(uur_verw)
         df_api_data = pd.DataFrame(api_data)
-
+ 
         @st.cache_data
         def process_hourly_data(df):
             """
@@ -126,12 +126,12 @@ if menu == "Oude versie":
             df['tijd'] = df['datetime'].dt.strftime('%H:%M')
             df['tijd'] = pd.to_datetime(df['tijd'], format='%H:%M', errors='coerce')
             return df
-
+ 
         # Uurlijkse data verwerken
         df_uur_verw = process_hourly_data(df_uur_verw)
-
+ 
         st.title("Het weer van vandaag")
-
+ 
         # ------------------------------------------
         # ICON-OVERZICHT
         # ------------------------------------------
@@ -151,7 +151,7 @@ if menu == "Oude versie":
             "wolkennacht": "wolkennacht.png",
             "zwaar bewolkt": "zwaarbewolkt.png"
         }
-
+ 
         # ------------------------------------------
         # COÖRDINATEN PER STAD
         # ------------------------------------------
@@ -169,11 +169,11 @@ if menu == "Oude versie":
             "Middelburg": [51.4988, 3.6136],
             "Rotterdam": [51.9225, 4.4792],
         }
-
+ 
         # Lat/Long toevoegen aan de DataFrame
         df_uur_verw["lat"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[0])
         df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda city: city_coords.get(city, [None, None])[1])
-
+ 
         # ------------------------------------------
         # FUNCTIE MAP MAKEN
         # ------------------------------------------
@@ -185,20 +185,20 @@ if menu == "Oude versie":
             """
             nl_map = folium.Map(location=[52.3, 5.3], zoom_start=8)
             df_filtered = df[df["tijd"] == geselecteerde_uur]
-
+ 
             for index, row in df_filtered.iterrows():
                 if visualisatie_optie == "Weer":
                     icon_file = weather_icons.get(row['image'].lower(), "bewolkt.png")
                     icon_path = f"iconen-weerlive/{icon_file}"
                     popup_text = f"{row['plaats']}: {row['temp']}°C, {row['image']}"
-
+ 
                     folium.Marker(
                         location=[row["lat"], row["lon"]],
                         popup=popup_text,
                         tooltip=row["plaats"],
                         icon=CustomIcon(icon_path, icon_size=(30, 30))
                     ).add_to(nl_map)
-
+ 
                 elif visualisatie_optie == "Temperatuur":
                     folium.map.Marker(
                         location=[row["lat"], row["lon"]],
@@ -223,7 +223,7 @@ if menu == "Oude versie":
                             )
                         )
                     ).add_to(nl_map)
-
+ 
                 elif visualisatie_optie == "Neerslag":
                     folium.map.Marker(
                         location=[row["lat"], row["lon"]],
@@ -248,23 +248,23 @@ if menu == "Oude versie":
                             )
                         )
                     ).add_to(nl_map)
-
+ 
             return nl_map
-
+ 
         # ------------------------------------------
         # INITIALISATIE VAN DE GEKOZEN STEDEN
         # ------------------------------------------
         if "selected_cities" not in st.session_state:
             st.session_state["selected_cities"] = [cities[0]]
-
+ 
         selected_cities = st.session_state["selected_cities"]
-
+ 
         # Filter de data op de geselecteerde steden
         df_selected_cities = df_uur_verw[df_uur_verw['plaats'].isin(selected_cities)]
-
+ 
         # Wat voor soort visualisatie willen we?
         visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
-
+ 
         # -------------------------------
         # SELECTIE VAN HET UUR VOOR DE MAP
         # -------------------------------
@@ -272,20 +272,20 @@ if menu == "Oude versie":
         huidig_uur = datetime.now().replace(minute=0, second=0, microsecond=0)
         if huidig_uur not in unieke_tijden and len(unieke_tijden) > 0:
             huidig_uur = unieke_tijden[0]
-
+ 
         selected_hour = st.select_slider(
             "Selecteer uur",
             options=sorted(unieke_tijden),
             value=huidig_uur,
             format_func=lambda t: t.strftime('%H:%M') if not pd.isnull(t) else "No time"
         )
-
+ 
         # -------------------------------
         # CREËER DE KAART
         # -------------------------------
         nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour, selected_cities)
         st_folium(nl_map, width=700)
-
+ 
         # -------------------------------
         # GRAFIEKEN
         # (Temperatuur of Neerslag)
@@ -305,22 +305,22 @@ if menu == "Oude versie":
                 plt.rcParams['grid.linestyle'] = '--'
                 plt.rcParams['grid.linewidth'] = 0.5
                 plt.rcParams['axes.titlepad'] = 15
-
+ 
                 fig, ax1 = plt.subplots(figsize=(10, 5))
-
+ 
                 if visualization_option == "Temperatuur":
                     for city in selected_cities:
                         city_data = df_selected_cities[df_selected_cities['plaats'] == city]
                         city_data = city_data.sort_values('tijd')
                         city_data['temp'] = city_data['temp'].interpolate(method='linear')
-
+ 
                         ax1.set_xlabel('Tijd')
                         ax1.set_ylabel('Temperatuur (°C)', color='tab:red')
                         ax1.plot(city_data['tijd'], city_data['temp'], label=city, linestyle='-', marker='o')
-
+ 
                     ax1.tick_params(axis='y', labelcolor='tab:red')
                     ax1.set_title("Temperatuur per Stad")
-
+ 
                 elif visualization_option == "Neerslag":
                     for city in selected_cities:
                         city_data = df_selected_cities[df_selected_cities['plaats'] == city]
@@ -328,25 +328,25 @@ if menu == "Oude versie":
                         city_data['neersl'] = city_data['neersl'].interpolate(method='linear')
                         if city_data['neersl'].isna().all():
                             city_data['neersl'] = 0
-
+ 
                         ax1.set_xlabel('Tijd')
                         ax1.set_ylabel('Neerslag (mm)', color='tab:blue')
                         ax1.plot(city_data['tijd'], city_data['neersl'], label=city, linestyle='-', marker='x')
-
+ 
                     ax1.set_ylim(-0.2, 8)
                     ax1.set_yticks(range(0, 9))
                     ax1.tick_params(axis='y', labelcolor='tab:blue')
                     ax1.set_title("Neerslag per Stad")
-
+ 
                 ax1.grid(True)
                 ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
                 ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
                 plt.setp(ax1.get_xticklabels(), rotation=45, ha="right")
-
+ 
                 fig.legend(loc='upper right', bbox_to_anchor=(1.1, 1), bbox_transform=ax1.transAxes)
                 plt.tight_layout()
                 st.pyplot(fig)
-
+ 
         # -------------------------------
         # CHECKBOXEN OM STEDEN TE SELECTEREN
         # -------------------------------
@@ -359,12 +359,12 @@ if menu == "Oude versie":
                     key = f"checkbox_{city}_{i}"
                     checked_now = city in st.session_state["selected_cities"]
                     checkbox_value = st.checkbox(city, value=checked_now, key=key)
-
+ 
                     if checkbox_value and city not in st.session_state["selected_cities"]:
                         st.session_state["selected_cities"].append(city)
                     elif not checkbox_value and city in st.session_state["selected_cities"]:
                         st.session_state["selected_cities"].remove(city)
-
+ 
     ######################################################
     #           TAB 4: VERANDERINGEN
     ######################################################
@@ -379,7 +379,7 @@ if menu == "Oude versie":
           en de kracht van de zon (zonnestraling).
         - De algehele UI is opnieuw ontworpen en geeft een prettiger en overzichtelijker beeld van het landelijk weer.
         """)
-
+ 
 ##########################################################
 #         N I E U W E   V E R S I E   (Weerapp)
 ##########################################################
@@ -388,10 +388,10 @@ elif menu == 'Nieuwe versie':
     # 1) Achtergrond instellen
     # ----------------------------------------------------
     set_bg_image("pexels-pixabay-531756.jpg")
-
+ 
     # Met een beetje extra styling voor zwarte achtergrond
     st.markdown("""
-        <style>
+<style>
             /* Apply black background only to key text elements */
             div.stTitle, div.stHeader, div.stSubheader, div.stTabs, div[data-testid="metric-container"] {
                 background-color: rgba(0, 0, 0, 0.8) !important;
@@ -404,9 +404,9 @@ elif menu == 'Nieuwe versie':
             div[data-testid="stMetricValue"] {
                 color: white !important;
             }
-        </style>
+</style>
     """, unsafe_allow_html=True)
-
+ 
     # ----------------------------------------------------
     # 2) API Config & Data Ophalen (Live, Week, Uur, etc)
     # ----------------------------------------------------
@@ -415,7 +415,7 @@ elif menu == 'Nieuwe versie':
         'Amsterdam', 'Assen', 'Lelystad', 'Leeuwarden', 'Arnhem', 'Groningen', 'Maastricht',
         'Eindhoven', 'Den Helder', 'Enschede', 'Amersfoort', 'Middelburg', 'Rotterdam', 'Zwolle'
     ]
-
+ 
     @st.cache_data
     def fetch_weather_data():
         """
@@ -443,123 +443,116 @@ elif menu == 'Nieuwe versie':
             else:
                 print(f"Error fetching data for {city}: {response.status_code}")
         return liveweer, wk_verw, uur_verw, api_data
-
+ 
     # Ophalen van de data
     liveweer, wk_verw, uur_verw, api_data = fetch_weather_data()
-
-# DataFrames aanmaken
-df_liveweer = pd.DataFrame(liveweer)
-df_wk_verw = pd.DataFrame(wk_verw)
-df_uur_verw = pd.DataFrame(uur_verw)
-df_api_data = pd.DataFrame(api_data)
-
-# ----------------------------------------------------
-# 3) UURLIJKSE DATA VERWERKEN
-# ----------------------------------------------------
-@st.cache_data
-def process_hourly_data(df):
-    """
-    Verwerkt de uur-voorspellingen in een dataframe:
-    - Maakt 'datetime' kolom op basis van 'timestamp' (UTC)
-    - Converteert 'datetime' naar Amsterdam-tijd
-    - Maakt een kolom 'tijd' (HH:MM) voor gebruik in charts.
-    """
-    # Parse as UTC
-    df['datetime'] = pd.to_datetime(df['timestamp'], unit='s', utc=True, errors='coerce')
-    
-    # Convert to Amsterdam local time
-    df['datetime'] = df['datetime'].dt.tz_convert('Europe/Amsterdam')
-    
-    # Format for display (HH:MM)
-    df['tijd'] = df['datetime'].dt.strftime('%H:%M')
-    return df
-
-# ----------------------------------------------------
-# 4) TABBLADEN: "Amsterdam Weer" & "Landelijk Weer"
-# ----------------------------------------------------
-tab1, tab2 = st.tabs(["Amsterdam Weer", "Landelijk Weer"])
-
-######################################################
-# T A B 1:  AMSTERDAM WEER (Vandaag)
-######################################################
-with tab1:
-    st.header("Weer in Amsterdam (vandaag)", divider='gray')
-
-    # 4.1) Filteren op Amsterdam
+ 
+    # DataFrames aanmaken
+    df_liveweer = pd.DataFrame(liveweer)
+    df_wk_verw = pd.DataFrame(wk_verw)
+    df_uur_verw = pd.DataFrame(uur_verw)
+    df_api_data = pd.DataFrame(api_data)
+ 
+    # ----------------------------------------------------
+    # 3) UURLIJKSE DATA VERWERKEN
+    # ----------------------------------------------------
+    @st.cache_data
+    def process_hourly_data(df):
+        """
+        Verwerkt de uur-voorspellingen in een dataframe:
+        - Maakt 'datetime' kolom op basis van 'timestamp'
+        - Maakt een kolom 'tijd' (HH:MM) voor gebruik in charts.
+        """
+        df['datetime'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
+        df['tijd'] = df['datetime'].dt.strftime('%H:%M')
+        return df
+ 
     df_uur_verw = process_hourly_data(df_uur_verw)
-    
-    df_uur_ams = df_uur_verw[
-        (df_uur_verw['plaats'] == 'Amsterdam')
-    ].copy()
-
-    # Zet expliciet een kolom 'tijd_24h' (optioneel, same as 'tijd')
-    df_uur_ams['tijd_24h'] = df_uur_ams['datetime'].dt.strftime('%H:%M')
-
-    if df_uur_ams.empty:
-        st.warning("Geen uurlijke voorspellingen voor Amsterdam gevonden voor vandaag.")
-    else:
-        # 4.2) Convert columns naar numeriek (temp, neersl) indien nodig
-        for col in ['temp', 'neersl']:
-            if col in df_uur_ams.columns:
-                df_uur_ams[col] = pd.to_numeric(df_uur_ams[col], errors='coerce')
-
-        # 4.3) Bepaal max / min / gem. temperatuur
-        max_temp = df_uur_ams['temp'].max()
-        min_temp = df_uur_ams['temp'].min()
-        avg_temp = df_uur_ams['temp'].mean()
-
-        # 4.4) Tonen van deze stats met metrics
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Max Temp (°C)", round(max_temp, 1) if pd.notnull(max_temp) else "N/A")
-        col2.metric("Min Temp (°C)", round(min_temp, 1) if pd.notnull(min_temp) else "N/A")
-        col3.metric("Gem. Temp (°C)", round(avg_temp, 1) if pd.notnull(avg_temp) else "N/A")
-
-        # 4.5) Korte samenvatting (bijv. 'samenv' of 'image')
-        if 'samenv' in df_uur_ams.columns:
-            summary = df_uur_ams.iloc[0]['samenv']
+ 
+    # ----------------------------------------------------
+    # 4) TABBLADEN: "Amsterdam Weer" & "Landelijk Weer"
+    # ----------------------------------------------------
+    tab1, tab2 = st.tabs(["Amsterdam Weer", "Landelijk Weer"])
+ 
+    ######################################################
+    # T A B 1:  AMSTERDAM WEER (Vandaag)
+    ######################################################
+    with tab1:
+        st.header("Weer in Amsterdam (vandaag)", divider='gray')
+ 
+        # 4.1) Filteren op Amsterdam + vandaag
+        df_uur_ams = df_uur_verw[
+            (df_uur_verw['plaats'] == 'Amsterdam')
+        ].copy()
+ 
+        # Zet expliciet een kolom 'tijd_24h'
+        df_uur_ams['tijd_24h'] = df_uur_ams['datetime'].dt.strftime('%H:%M')
+ 
+        if df_uur_ams.empty:
+            st.warning("Geen uurlijke voorspellingen voor Amsterdam gevonden voor vandaag.")
         else:
-            summary = df_uur_ams.iloc[0].get('image', 'Geen samenvatting')
-
-        st.subheader("Samenvatting")
-        st.write(summary)
-
-        ################################################
-        # 4.6) GRAFIEK NEERSLAG
-        ################################################
-        if 'neersl' in df_uur_ams.columns:
-            st.subheader("Verwachte neerslag (mm)")
-            st.line_chart(
-                data=df_uur_ams,
-                x='tijd',
-                y='neersl',
-                x_label='Uur van de dag',
-                y_label='Neerslag (mm)',
-            )
-        else:
-            st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
-
-        ################################################
-        # 4.7) GRAFIEK ZONLICHT
-        ################################################
-        if 'gr' in df_uur_ams.columns:
-            st.subheader("Verwachte zonnestraling (Watt/M²)")
-            st.line_chart(
-                data=df_uur_ams,
-                x='tijd',
-                y='gr',
-                x_label='Uur van de dag',
-                y_label='Zonnestraling (Watt/M²)',
-            )
-        else:
-            st.info("Geen zonlichtkolom ('gr') gevonden in de uurlijkse data.")
-
-
+            # 4.2) Convert columns naar numeriek (temp, neersl) indien nodig
+            for col in ['temp', 'neersl']:
+                if col in df_uur_ams.columns:
+                    df_uur_ams[col] = pd.to_numeric(df_uur_ams[col], errors='coerce')
+ 
+            # 4.3) Bepaal max / min / gem. temperatuur
+            max_temp = df_uur_ams['temp'].max()
+            min_temp = df_uur_ams['temp'].min()
+            avg_temp = df_uur_ams['temp'].mean()
+ 
+            # 4.4) Tonen van deze stats met metrics
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Max Temp (°C)", round(max_temp, 1) if pd.notnull(max_temp) else "N/A")
+            col2.metric("Min Temp (°C)", round(min_temp, 1) if pd.notnull(min_temp) else "N/A")
+            col3.metric("Gem. Temp (°C)", round(avg_temp, 1) if pd.notnull(avg_temp) else "N/A")
+ 
+            # 4.5) Korte samenvatting (bijv. 'samenv' of 'image')
+            if 'samenv' in df_uur_ams.columns:
+                summary = df_uur_ams.iloc[0]['samenv']
+            else:
+                summary = df_uur_ams.iloc[0].get('image', 'Geen samenvatting')
+ 
+            st.subheader("Samenvatting")
+            st.write(summary)
+ 
+            ################################################
+            # 4.6) GRAFIEK NEERSLAG (GEFORCEERDE 24h RANGE)
+            ################################################
+            if 'neersl' in df_uur_ams.columns:
+                st.subheader("Verwachte neerslag (mm)")
+                st.line_chart(
+                    data=df_uur_ams,
+                    x='tijd_24h',
+                    y='neersl',
+                    x_label='Uur van de dag',
+                    y_label='Neerslag (mm)',
+                )
+            else:
+                st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
+ 
+            ################################################
+            # 4.7) GRAFIEK ZONLICHT (GEFORCEERDE 24h RANGE)
+            ################################################
+            if 'gr' in df_uur_ams.columns:
+                # Idem, maak een 24-uurs range voor vandaag
+                st.subheader("Verwachte zonnestraling (Watt/M²)")
+                st.line_chart(
+                    data=df_uur_ams,
+                    x='tijd_24h',
+                    y='gr',
+                    x_label='Uur van de dag',
+                    y_label='Zonnestraling (Watt/M²)',
+                )
+            else:
+                st.info("Geen zonlichtkolom ('gr') gevonden in de uurlijkse data.")
+ 
     ######################################################
     # T A B 2:  LANDLIJK WEER
     ######################################################
     with tab2:
         st.title("Landelijk Weerkaart")
-
+ 
         # ------------------------------------------
         # ICONS VOOR WEERCONDITIES
         # ------------------------------------------
@@ -579,7 +572,7 @@ with tab1:
             "wolkennacht": "wolkennacht.png",
             "zwaarbewolkt": "zwaarbewolkt.png"
         }
-
+ 
         # ------------------------------------------
         # COÖRDINATEN PER STAD
         # ------------------------------------------
@@ -599,11 +592,11 @@ with tab1:
             "Rotterdam": [51.9225, 4.4792],
             "Zwolle": [52.5167, 6.0833],
         }
-
+ 
         # Lat/Long toevoegen
         df_uur_verw["lat"] = df_uur_verw["plaats"].map(lambda c: city_coords.get(c, [None, None])[0])
         df_uur_verw["lon"] = df_uur_verw["plaats"].map(lambda c: city_coords.get(c, [None, None])[1])
-
+ 
         # ------------------------------------------
         # FUNCTIE OM KAART TE CREËREN
         # ------------------------------------------
@@ -614,26 +607,26 @@ with tab1:
             """
             nl_map = folium.Map(
                 location=[52.3, 5.3],
-                zoom_start=9,
+                zoom_start=8,
                 tiles="CartoDB positron"
             )
-
+ 
             # Filteren op het geselecteerde uur (bv "13:00")
             df_filtered = df[df["tijd"] == geselecteerde_uur_str]
-
+ 
             for _, row in df_filtered.iterrows():
                 if visualisatie_optie == "Weer":
                     icon_file = weather_icons.get(str(row.get('image', '')).lower(), "bewolkt.png")
                     icon_path = f"iconen-weerlive/{icon_file}"
                     popup_text = f"{row['plaats']}: {row['temp']}°C, {row['image']}"
-
+ 
                     folium.Marker(
                         location=[row["lat"], row["lon"]],
                         popup=popup_text,
                         tooltip=row["plaats"],
                         icon=CustomIcon(icon_path, icon_size=(45, 45))
                     ).add_to(nl_map)
-
+ 
                 elif visualisatie_optie == "Temperatuur":
                     folium.map.Marker(
                         location=[row["lat"], row["lon"]],
@@ -658,7 +651,7 @@ with tab1:
                             )
                         )
                     ).add_to(nl_map)
-
+ 
                 elif visualisatie_optie == "Neerslag":
                     folium.map.Marker(
                         location=[row["lat"], row["lon"]],
@@ -683,49 +676,49 @@ with tab1:
                             )
                         )
                     ).add_to(nl_map)
-
+ 
             return nl_map
-
+ 
         # ------------------------------------------
         # ZORGEN DAT EEN STANDAARD STAD GEFILTERD IS
         # ------------------------------------------
         if "selected_cities" not in st.session_state:
             st.session_state["selected_cities"] = [cities[0]]
         selected_cities = st.session_state["selected_cities"]
-
+ 
         df_selected_cities = df_uur_verw[df_uur_verw['plaats'].isin(selected_cities)]
-
+ 
         # ------------------------------------------
         # WELKE VISUALISATIE? ("Weer", "Temperatuur", of "Neerslag")
         # ------------------------------------------
         visualization_option = st.selectbox("Selecteer weergave", ["Temperatuur", "Weer", "Neerslag"])
-
+ 
         # Lijst met unieke tijden
         unieke_tijden = df_selected_cities["tijd"].dropna().unique()
         sorted_times = sorted(unieke_tijden)
-
+ 
         # Check of het huidige uur in de lijst zit, anders gebruik de eerste
         current_hour_str = datetime.now().strftime('%H:%M')
         if current_hour_str not in sorted_times and len(sorted_times) > 0:
             current_hour_str = sorted_times[0]
-
+ 
         # Slider om uur te selecteren
         selected_hour_str = st.select_slider(
             "Selecteer uur",
             options=sorted_times,
             value=current_hour_str
         )
-
+ 
         # ------------------------------------------
         # KAART OPBOUWEN
         # ------------------------------------------
         nl_map = create_full_map(df_uur_verw, visualization_option, selected_hour_str, selected_cities)
         st_folium(nl_map, width=None, height=600)
-
+ 
 ##########################################################
 #                   B R O N N E N
 ##########################################################
-    else:
+else:
     st.title("Gebruikte bronnen")
     st.write("""
     Voor het maken van deze weerapp hebben wij gebruik gemaakt van een API, AI en een bron van inspiratie. Deze zijn als volgt:
