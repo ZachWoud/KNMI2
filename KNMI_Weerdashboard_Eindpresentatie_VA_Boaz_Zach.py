@@ -522,8 +522,8 @@ elif menu == 'Nieuwe versie':
             ################################################
             if 'neersl' in df_uur_ams.columns:
                 st.subheader("Verwachte neerslag (mm)")
+             
                 chart = alt.Chart(df_uur_ams).mark_line().encode(
-                    data=df_uur_ams,
                     x='tijd_24h',
                     y=alt.Y('neersl', scale=alt.Scale(domain=[0, 25])),
                     x_label='Uur van de dag',
