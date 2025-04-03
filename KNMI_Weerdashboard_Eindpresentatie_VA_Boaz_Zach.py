@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import numpy as np
 import matplotlib.dates as mdates
+import altair as alt
  
 # OPTIONAL: Set page layout
 st.set_page_config(layout="wide")
