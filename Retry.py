@@ -546,14 +546,6 @@ elif menu == 'Nieuwe versie':
             ################################################
             if 'gr' in df_uur_ams.columns:
                 # Idem, maak een 24-uurs range voor vandaag
-                day_start = datetime.combine(today_date, datetime.min.time())  # 00:00
-                day_end = day_start + timedelta(hours=23)
-                full_range = pd.date_range(start=day_start, end=day_end, freq='H')
-                full_df = pd.DataFrame({'datetime': full_range})
-                full_df['tijd_24h'] = full_df['datetime'].dt.strftime('%H:%M')
-
-                merged_df = pd.merge(full_df, df_uur_ams, on='tijd_24h', how='left', suffixes=('', '_orig'))
-
                 st.subheader("Verwachte zonnestraling (Watt/M²)")
                 st.line_chart(
                     data=df_uur_ams,
