@@ -524,7 +524,7 @@ elif menu == 'Nieuwe versie':
                 st.line_chart(
                     data=df_uur_ams,
                     x='tijd_24h',
-                    y='neersl',
+                    y=alt.Y('neersl', scale=alt.Scale(domain=[0, 25])),
                     x_label='Uur van de dag',
                     y_label='Neerslag (mm)',
                 )
