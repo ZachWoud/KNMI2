@@ -725,7 +725,7 @@ with tab1:
 ##########################################################
 #                   B R O N N E N
 ##########################################################
-else:
+    else:
     st.title("Gebruikte bronnen")
     st.write("""
     Voor het maken van deze weerapp hebben wij gebruik gemaakt van een API, AI en een bron van inspiratie. Deze zijn als volgt:
