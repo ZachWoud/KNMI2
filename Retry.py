@@ -447,105 +447,112 @@ elif menu == 'Nieuwe versie':
     # Ophalen van de data
     liveweer, wk_verw, uur_verw, api_data = fetch_weather_data()
 
-    # DataFrames aanmaken
-    df_liveweer = pd.DataFrame(liveweer)
-    df_wk_verw = pd.DataFrame(wk_verw)
-    df_uur_verw = pd.DataFrame(uur_verw)
-    df_api_data = pd.DataFrame(api_data)
+# DataFrames aanmaken
+df_liveweer = pd.DataFrame(liveweer)
+df_wk_verw = pd.DataFrame(wk_verw)
+df_uur_verw = pd.DataFrame(uur_verw)
+df_api_data = pd.DataFrame(api_data)
 
-    # ----------------------------------------------------
-    # 3) UURLIJKSE DATA VERWERKEN
-    # ----------------------------------------------------
-    @st.cache_data
-    def process_hourly_data(df):
-        """
-        Verwerkt de uur-voorspellingen in een dataframe:
-        - Maakt 'datetime' kolom op basis van 'timestamp'
-        - Maakt een kolom 'tijd' (HH:MM) voor gebruik in charts.
-        """
-        df['datetime'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
-        df['tijd'] = df['datetime'].dt.strftime('%H:%M')
-        return df
+# ----------------------------------------------------
+# 3) UURLIJKSE DATA VERWERKEN
+# ----------------------------------------------------
+@st.cache_data
+def process_hourly_data(df):
+    """
+    Verwerkt de uur-voorspellingen in een dataframe:
+    - Maakt 'datetime' kolom op basis van 'timestamp' (UTC)
+    - Converteert 'datetime' naar Amsterdam-tijd
+    - Maakt een kolom 'tijd' (HH:MM) voor gebruik in charts.
+    """
+    # Parse as UTC
+    df['datetime'] = pd.to_datetime(df['timestamp'], unit='s', utc=True, errors='coerce')
+    
+    # Convert to Amsterdam local time
+    df['datetime'] = df['datetime'].dt.tz_convert('Europe/Amsterdam')
+    
+    # Format for display (HH:MM)
+    df['tijd'] = df['datetime'].dt.strftime('%H:%M')
+    return df
 
-    # ----------------------------------------------------
-    # 4) TABBLADEN: "Amsterdam Weer" & "Landelijk Weer"
-    # ----------------------------------------------------
-    tab1, tab2 = st.tabs(["Amsterdam Weer", "Landelijk Weer"])
+# ----------------------------------------------------
+# 4) TABBLADEN: "Amsterdam Weer" & "Landelijk Weer"
+# ----------------------------------------------------
+tab1, tab2 = st.tabs(["Amsterdam Weer", "Landelijk Weer"])
 
-    ######################################################
-    # T A B 1:  AMSTERDAM WEER (Vandaag)
-    ######################################################
-    with tab1:
-        st.header("Weer in Amsterdam (vandaag)", divider='gray')
+######################################################
+# T A B 1:  AMSTERDAM WEER (Vandaag)
+######################################################
+with tab1:
+    st.header("Weer in Amsterdam (vandaag)", divider='gray')
 
-        # 4.1) Filteren op Amsterdam + vandaag
-        df_uur_verw = process_hourly_data(df_uur_verw)
-        
-        df_uur_ams = df_uur_verw[
-            (df_uur_verw['plaats'] == 'Amsterdam')
-        ].copy()
+    # 4.1) Filteren op Amsterdam
+    df_uur_verw = process_hourly_data(df_uur_verw)
+    
+    df_uur_ams = df_uur_verw[
+        (df_uur_verw['plaats'] == 'Amsterdam')
+    ].copy()
 
-        # Zet expliciet een kolom 'tijd_24h'
-        df_uur_ams['tijd_24h'] = df_uur_ams['datetime'].dt.strftime('%H:%M')
+    # Zet expliciet een kolom 'tijd_24h' (optioneel, same as 'tijd')
+    df_uur_ams['tijd_24h'] = df_uur_ams['datetime'].dt.strftime('%H:%M')
 
-        if df_uur_ams.empty:
-            st.warning("Geen uurlijke voorspellingen voor Amsterdam gevonden voor vandaag.")
+    if df_uur_ams.empty:
+        st.warning("Geen uurlijke voorspellingen voor Amsterdam gevonden voor vandaag.")
+    else:
+        # 4.2) Convert columns naar numeriek (temp, neersl) indien nodig
+        for col in ['temp', 'neersl']:
+            if col in df_uur_ams.columns:
+                df_uur_ams[col] = pd.to_numeric(df_uur_ams[col], errors='coerce')
+
+        # 4.3) Bepaal max / min / gem. temperatuur
+        max_temp = df_uur_ams['temp'].max()
+        min_temp = df_uur_ams['temp'].min()
+        avg_temp = df_uur_ams['temp'].mean()
+
+        # 4.4) Tonen van deze stats met metrics
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Max Temp (°C)", round(max_temp, 1) if pd.notnull(max_temp) else "N/A")
+        col2.metric("Min Temp (°C)", round(min_temp, 1) if pd.notnull(min_temp) else "N/A")
+        col3.metric("Gem. Temp (°C)", round(avg_temp, 1) if pd.notnull(avg_temp) else "N/A")
+
+        # 4.5) Korte samenvatting (bijv. 'samenv' of 'image')
+        if 'samenv' in df_uur_ams.columns:
+            summary = df_uur_ams.iloc[0]['samenv']
         else:
-            # 4.2) Convert columns naar numeriek (temp, neersl) indien nodig
-            for col in ['temp', 'neersl']:
-                if col in df_uur_ams.columns:
-                    df_uur_ams[col] = pd.to_numeric(df_uur_ams[col], errors='coerce')
+            summary = df_uur_ams.iloc[0].get('image', 'Geen samenvatting')
 
-            # 4.3) Bepaal max / min / gem. temperatuur
-            max_temp = df_uur_ams['temp'].max()
-            min_temp = df_uur_ams['temp'].min()
-            avg_temp = df_uur_ams['temp'].mean()
+        st.subheader("Samenvatting")
+        st.write(summary)
 
-            # 4.4) Tonen van deze stats met metrics
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Max Temp (°C)", round(max_temp, 1) if pd.notnull(max_temp) else "N/A")
-            col2.metric("Min Temp (°C)", round(min_temp, 1) if pd.notnull(min_temp) else "N/A")
-            col3.metric("Gem. Temp (°C)", round(avg_temp, 1) if pd.notnull(avg_temp) else "N/A")
+        ################################################
+        # 4.6) GRAFIEK NEERSLAG
+        ################################################
+        if 'neersl' in df_uur_ams.columns:
+            st.subheader("Verwachte neerslag (mm)")
+            st.line_chart(
+                data=df_uur_ams,
+                x='tijd',
+                y='neersl',
+                x_label='Uur van de dag',
+                y_label='Neerslag (mm)',
+            )
+        else:
+            st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
 
-            # 4.5) Korte samenvatting (bijv. 'samenv' of 'image')
-            if 'samenv' in df_uur_ams.columns:
-                summary = df_uur_ams.iloc[0]['samenv']
-            else:
-                summary = df_uur_ams.iloc[0].get('image', 'Geen samenvatting')
+        ################################################
+        # 4.7) GRAFIEK ZONLICHT
+        ################################################
+        if 'gr' in df_uur_ams.columns:
+            st.subheader("Verwachte zonnestraling (Watt/M²)")
+            st.line_chart(
+                data=df_uur_ams,
+                x='tijd',
+                y='gr',
+                x_label='Uur van de dag',
+                y_label='Zonnestraling (Watt/M²)',
+            )
+        else:
+            st.info("Geen zonlichtkolom ('gr') gevonden in de uurlijkse data.")
 
-            st.subheader("Samenvatting")
-            st.write(summary)
-
-            ################################################
-            # 4.6) GRAFIEK NEERSLAG (GEFORCEERDE 24h RANGE)
-            ################################################
-            if 'neersl' in df_uur_ams.columns:
-                st.subheader("Verwachte neerslag (mm)")
-                st.line_chart(
-                    data=df_uur_ams,
-                    x='tijd',
-                    y='neersl',
-                    x_label='Uur van de dag',
-                    y_label='Neerslag (mm)',
-                )
-            else:
-                st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
-
-            ################################################
-            # 4.7) GRAFIEK ZONLICHT (GEFORCEERDE 24h RANGE)
-            ################################################
-            if 'gr' in df_uur_ams.columns:
-                # Idem, maak een 24-uurs range voor vandaag
-                st.subheader("Verwachte zonnestraling (Watt/M²)")
-                st.line_chart(
-                    data=df_uur_ams,
-                    x='tijd',
-                    y='gr',
-                    x_label='Uur van de dag',
-                    y_label='Zonnestraling (Watt/M²)',
-                )
-            else:
-                st.info("Geen zonlichtkolom ('gr') gevonden in de uurlijkse data.")
 
     ######################################################
     # T A B 2:  LANDLIJK WEER
