@@ -9,7 +9,7 @@ from folium.features import CustomIcon
 from streamlit_folium import st_folium
 import folium
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 import matplotlib.dates as mdates
 
@@ -487,9 +487,7 @@ elif menu == 'Nieuwe versie':
             (df_uur_verw['datetime'].dt.date == today_date)
         ].copy()
 
-        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        # Hier zorgen we dat 'tijd_24h' zeker bestaat, anders kan de merge hieronder falen
-        # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        # Zet expliciet een kolom 'tijd_24h'
         df_uur_ams['tijd_24h'] = df_uur_ams['datetime'].dt.strftime('%H:%M')
 
         if df_uur_ams.empty:
@@ -521,68 +519,50 @@ elif menu == 'Nieuwe versie':
             st.write(summary)
 
             ################################################
-            # 4.6) GRAFIEK NEERSLAG (AANGEPAST)
+            # 4.6) GRAFIEK NEERSLAG (GEFORCEERDE 24h RANGE)
             ################################################
             if 'neersl' in df_uur_ams.columns:
-                # Vind de vroegste en laatste datetime in df_uur_ams
-                min_ts = df_uur_ams['datetime'].min()
-                max_ts = df_uur_ams['datetime'].max()
+                # Maak altijd 24-uurs range (00:00 t/m 23:00) voor deze dag
+                day_start = datetime.combine(today_date, datetime.min.time())  # 00:00
+                day_end = day_start + timedelta(hours=23)                      # 23:00
+                full_range = pd.date_range(start=day_start, end=day_end, freq='H')
+                full_df = pd.DataFrame({'datetime': full_range})
+                full_df['tijd_24h'] = full_df['datetime'].dt.strftime('%H:%M')
 
-                # Afronden naar hele uren (zodat we netjes ieder uur krijgen)
-                if pd.notnull(min_ts) and pd.notnull(max_ts):
-                    min_ts = min_ts.floor('H')
-                    max_ts = max_ts.ceil('H')
+                merged_df = pd.merge(full_df, df_uur_ams, on='tijd_24h', how='left', suffixes=('', '_orig'))
 
-                    # Maak een range van min_ts t/m max_ts in stappen van 1 uur
-                    full_range = pd.date_range(start=min_ts, end=max_ts, freq='H')
-                    full_df = pd.DataFrame({'datetime': full_range})
-                    full_df['tijd_24h'] = full_df['datetime'].dt.strftime('%H:%M')
-
-                    # Merge op tijd_24h
-                    merged_df = pd.merge(full_df, df_uur_ams, on='tijd_24h', how='left', suffixes=('', '_orig'))
-
-                    # Plot
-                    st.subheader("Verwachte neerslag (mm)")
-                    st.line_chart(
-                        data=merged_df,
-                        x='tijd_24h',
-                        y='neersl',
-                        x_label='Uur van de dag',
-                        y_label='Neerslag (mm)',
-                    )
-                else:
-                    st.info("Geen geldige tijdstippen gevonden voor neerslagdata.")
+                st.subheader("Verwachte neerslag (mm)")
+                st.line_chart(
+                    data=merged_df,
+                    x='tijd_24h',
+                    y='neersl',
+                    x_label='Uur van de dag',
+                    y_label='Neerslag (mm)',
+                )
             else:
                 st.info("Geen neerslagkolom ('neersl') gevonden in de uurlijkse data.")
 
             ################################################
-            # 4.7) GRAFIEK ZONLICHT (AANGEPAST)
+            # 4.7) GRAFIEK ZONLICHT (GEFORCEERDE 24h RANGE)
             ################################################
             if 'gr' in df_uur_ams.columns:
-                # Vind de vroegste en laatste datetime in df_uur_ams
-                min_ts = df_uur_ams['datetime'].min()
-                max_ts = df_uur_ams['datetime'].max()
+                # Idem, maak een 24-uurs range voor vandaag
+                day_start = datetime.combine(today_date, datetime.min.time())  # 00:00
+                day_end = day_start + timedelta(hours=23)
+                full_range = pd.date_range(start=day_start, end=day_end, freq='H')
+                full_df = pd.DataFrame({'datetime': full_range})
+                full_df['tijd_24h'] = full_df['datetime'].dt.strftime('%H:%M')
 
-                if pd.notnull(min_ts) and pd.notnull(max_ts):
-                    min_ts = min_ts.floor('H')
-                    max_ts = max_ts.ceil('H')
+                merged_df = pd.merge(full_df, df_uur_ams, on='tijd_24h', how='left', suffixes=('', '_orig'))
 
-                    full_range = pd.date_range(start=min_ts, end=max_ts, freq='H')
-                    full_df = pd.DataFrame({'datetime': full_range})
-                    full_df['tijd_24h'] = full_df['datetime'].dt.strftime('%H:%M')
-
-                    merged_df = pd.merge(full_df, df_uur_ams, on='tijd_24h', how='left', suffixes=('', '_orig'))
-
-                    st.subheader("Verwachte zonnestraling (Watt/M²)")
-                    st.line_chart(
-                        data=merged_df,
-                        x='tijd_24h',
-                        y='gr',
-                        x_label='Uur van de dag',
-                        y_label='Zonnestraling (Watt/M²)'
-                    )
-                else:
-                    st.info("Geen geldige tijdstippen gevonden voor zonnestraling.")
+                st.subheader("Verwachte zonnestraling (Watt/M²)")
+                st.line_chart(
+                    data=merged_df,
+                    x='tijd_24h',
+                    y='gr',
+                    x_label='Uur van de dag',
+                    y_label='Zonnestraling (Watt/M²)',
+                )
             else:
                 st.info("Geen zonlichtkolom ('gr') gevonden in de uurlijkse data.")
 
@@ -765,4 +745,3 @@ else:
     - ChatGPT (https://chatgpt.com/)
     - Weeronline als inspiratiebron (https://www.weeronline.nl/)
     """)
-
