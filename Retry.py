@@ -533,7 +533,7 @@ elif menu == 'Nieuwe versie':
 
                 st.subheader("Verwachte neerslag (mm)")
                 st.line_chart(
-                    data=merged_df,
+                    data=df_uur_ams,
                     x='tijd_24h',
                     y='neersl',
                     x_label='Uur van de dag',
@@ -557,7 +557,7 @@ elif menu == 'Nieuwe versie':
 
                 st.subheader("Verwachte zonnestraling (Watt/M²)")
                 st.line_chart(
-                    data=merged_df,
+                    data=df_uur_ams,
                     x='tijd_24h',
                     y='gr',
                     x_label='Uur van de dag',
