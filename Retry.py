@@ -607,7 +607,7 @@ elif menu == 'Nieuwe versie':
             """
             nl_map = folium.Map(
                 location=[52.3, 5.3],
-                zoom_start=9,
+                zoom_start=7,
                 tiles="CartoDB positron"
             )
  
