@@ -521,15 +521,6 @@ elif menu == 'Nieuwe versie':
             # 4.6) GRAFIEK NEERSLAG (GEFORCEERDE 24h RANGE)
             ################################################
             if 'neersl' in df_uur_ams.columns:
-                # Maak altijd 24-uurs range (00:00 t/m 23:00) voor deze dag
-                day_start = datetime.combine(today_date, datetime.min.time())  # 00:00
-                day_end = day_start + timedelta(hours=23)                      # 23:00
-                full_range = pd.date_range(start=day_start, end=day_end, freq='H')
-                full_df = pd.DataFrame({'datetime': full_range})
-                full_df['tijd_24h'] = full_df['datetime'].dt.strftime('%H:%M')
-
-                merged_df = pd.merge(full_df, df_uur_ams, on='tijd_24h', how='left', suffixes=('', '_orig'))
-
                 st.subheader("Verwachte neerslag (mm)")
                 st.line_chart(
                     data=df_uur_ams,
