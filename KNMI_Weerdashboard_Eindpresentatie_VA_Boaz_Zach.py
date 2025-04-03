@@ -136,20 +136,20 @@ if menu == "Oude versie":
         # ICON-OVERZICHT
         # ------------------------------------------
         weather_icons = {
-            "zonnig": "zonnig(1).png",
-            "bewolkt": "bewolkt(1).png",
-            "half bewolkt": "halfbewolkt(1).png",
-            "licht bewolkt": "halfbewolkt(1).png",
-            "regen": "regen(1).png",
-            "buien": "buien(1).png",
-            "mist": "mist(1).png",
-            "sneeuw": "sneeuw(1).png",
-            "onweer": "bliksem(1).png",
-            "hagel": "hagel(1).png",
-            "heldere nacht": "helderenacht(1).png",
-            "nachtmist": "nachtmist(1).png",
-            "wolkennacht": "wolkennacht(1).png",
-            "zwaar bewolkt": "zwaarbewolkt(1).png"
+            "zonnig": "zonnig1.png",
+            "bewolkt": "bewolkt1.png",
+            "half bewolkt": "halfbewolkt1.png",
+            "licht bewolkt": "halfbewolkt1.png",
+            "regen": "regen1.png",
+            "buien": "buien1.png",
+            "mist": "mist1.png",
+            "sneeuw": "sneeuw1.png",
+            "onweer": "bliksem1.png",
+            "hagel": "hagel1.png",
+            "heldere nacht": "helderenacht1.png",
+            "nachtmist": "nachtmist1.png",
+            "wolkennacht": "wolkennacht1.png",
+            "zwaar bewolkt": "zwaarbewolkt1.png"
         }
  
         # ------------------------------------------
