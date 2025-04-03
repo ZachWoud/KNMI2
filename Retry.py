@@ -541,7 +541,7 @@ elif menu == 'Nieuwe versie':
                 ax_neersl.set_ylabel('Neerslag (mm)')
 
                 # Zet de x-labels horizontaal
-                plt.setp(ax_neersl.get_xticklabels(), rotation=0, ha='center')
+                plt.setp(ax_neersl.get_xticklabels(), rotation=90, ha='center')
                 
                 ax_neersl.set_title("Neerslag gedurende de dag (Amsterdam)")
                 st.pyplot(fig_neersl)
@@ -571,7 +571,7 @@ elif menu == 'Nieuwe versie':
                 ax_zon.set_ylabel('Zonnestraling (W/m²)')
 
                 # Zet de x-labels horizontaal
-                plt.setp(ax_zon.get_xticklabels(), rotation=0, ha='center')
+                plt.setp(ax_zon.get_xticklabels(), rotation=90, ha='center')
                 
                 ax_zon.set_title("Zonnestraling gedurende de dag (Amsterdam)")
                 st.pyplot(fig_zon)
