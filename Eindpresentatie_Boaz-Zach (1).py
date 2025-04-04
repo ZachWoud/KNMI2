@@ -1108,7 +1108,7 @@ elif menu == 'Nieuwe versie':
 
                     icon_file = weather_icons.get(str(row.get('image', '')).lower(), "bewolkt.png")
 
-                    icon_path = f"iconen-weer/{icon_file}"
+                    icon_path = f"iconen-weerlive/{icon_file}"
 
                     popup_text = f"{row['plaats']}: {row['temp']}°C, {row['image']}"
  
