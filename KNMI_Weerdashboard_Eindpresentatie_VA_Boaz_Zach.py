@@ -1715,7 +1715,7 @@ elif menu == 'Nieuwe versie':
  
 
             ################################################
-
+            st.subheader("Verwachte neerslag (mm)")
  
 
             if 'neersl' in df_uur_ams.columns:
